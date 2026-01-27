@@ -1,41 +1,67 @@
-# cli_ollama_server
+# cli_ollama_server (ollama-remote)
 
-Thin, dependency-light wrappers around the official `ollama.exe` CLI to default to a remote Ollama server.
+`ollama-remote` is a small, production-friendly wrapper around the official `ollama` CLI.
 
-Default server:
+It resolves configuration (`host`, `lang`, `ollama_exe`) and runs `ollama` with your arguments.
 
-- `http://10.65.117.238:11434`
+## What this tool does
 
-## Quick Start
+- Runs the upstream `ollama` CLI with a resolved `OLLAMA_HOST`
+- Provides config management, basic diagnostics, and an optional local web UI
+- Propagates exit codes (CI-friendly)
 
-1) Add this folder to your User PATH:
+## What this tool does NOT do
+
+- It does not run or manage an Ollama server
+- It does not reimplement the Ollama API
+- It does not ship Ollama itself
+
+## Quick Start (Windows)
+
+1) Download the latest release zip and extract it.
+2) Add the folder to your User PATH:
 
 ```powershell
 pwsh -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-2) Use the wrapper:
+## Quick Start (macOS / Linux)
 
-```bat
-ollama-remote list
-ollama-remote run llama3:8b
-ollama-remote --host http://10.65.117.238:11434 ps
+1) Download the latest release zip and extract it.
+2) Add the folder to your PATH:
+
+```sh
+chmod +x ./install.sh ./ollama-remote
+./install.sh
 ```
 
-## Behavior
+3) Set your host (optional, defaults to `http://127.0.0.1:11434`):
 
-- If `OLLAMA_HOST` is already set, the wrapper will not override it.
-- You can override per call with `--host <url>` or `--host=<url>`.
-- Exit codes are propagated (CI-friendly).
+```bash
+ollama-remote config init
+ollama-remote config set host https://ollama.example.com:11434
+```
 
-## Environment Variables
+4) Use it:
 
-- `OLLAMA_HOST`: target server URL (e.g. `http://10.65.117.238:11434`)
-- `OLLAMA_EXE`: full path to `ollama.exe` (useful if `ollama` is not on PATH)
+```bash
+ollama-remote list
+ollama-remote run llama3:8b
+ollama-remote --host https://ollama.example.com:11434 ps
+```
 
-## Files
+## Documentation
 
-- `ollama-remote.bat`: primary Batch wrapper
-- `ollama-remote.ps1`: optional PowerShell wrapper (more flexible arg parsing)
-- `install.ps1`: add this folder to User PATH (no admin)
-- `uninstall.ps1`: remove this folder from User PATH
+- `docs/installation.md`
+- `docs/configuration.md`
+- `docs/commands.md`
+- `docs/i18n.md`
+- `docs/ui.md`
+- `docs/troubleshooting.md`
+
+## Legacy wrappers
+
+If you still need the original script-based wrappers, see:
+
+- `legacy/ollama-remote.bat`
+- `legacy/ollama-remote.ps1`

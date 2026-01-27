@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 
-set "DEFAULT_HOST=http://10.65.117.238:11434"
+set "DEFAULT_HOST=http://127.0.0.1:11434"
 set "HOST_OVERRIDE="
 set "SHOW_HELP="
 set "PASSTHRU="
@@ -53,11 +53,7 @@ if defined HOST_OVERRIDE (
   if not defined OLLAMA_HOST set "OLLAMA_HOST=%DEFAULT_HOST%"
 )
 
-rem Avoid proxy issues for a local network endpoint (only when relevant)
-if not defined NO_PROXY (
-  echo %OLLAMA_HOST% | findstr /C:"10.65.117.238" >nul 2>nul
-  if not errorlevel 1 set "NO_PROXY=10.65.117.238"
-)
+rem Legacy wrapper does not modify NO_PROXY.
 
 rem Prefer explicit OLLAMA_EXE if set, else use PATH
 set "OLLAMA_CMD=ollama"
@@ -80,5 +76,5 @@ echo.
 echo Examples:
 echo   ollama-remote list
 echo   ollama-remote run llama3:8b
-echo   ollama-remote --host http://10.65.117.238:11434 ps
+echo   ollama-remote --host http://127.0.0.1:11434 ps
 exit /b 0

@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="{{LANG}}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{TITLE}}</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <main class="wrap">
+      <header class="head">
+        <div>
+          <h1>ollama-remote</h1>
+          <p class="sub">{{SUBTITLE}}</p>
+        </div>
+        <div class="actions">
+          <button id="btnList" class="btn">{{BTN_LIST}}</button>
+        </div>
+      </header>
+
+      <section class="card">
+        <h2>{{SECTION_CONFIG}}</h2>
+        <div class="grid">
+          <label>
+            <span>{{LABEL_HOST}}</span>
+            <input id="host" placeholder="{{PLACEHOLDER_HOST}}" />
+          </label>
+          <label>
+            <span>{{LABEL_LANG}}</span>
+            <select id="lang">
+              <option value="en">English</option>
+              <option value="es">Español</option>
+              <option value="de">Deutsch</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <button id="btnSave" class="btn">{{BTN_SAVE}}</button>
+          <span id="cfgPath" class="muted"></span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>{{SECTION_PULL}}</h2>
+        <div class="row">
+          <input id="pullModel" placeholder="{{PLACEHOLDER_MODEL}}" />
+          <button id="btnPull" class="btn">{{BTN_PULL}}</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>{{SECTION_RUN}}</h2>
+        <div class="grid">
+          <label>
+            <span>{{LABEL_MODEL}}</span>
+            <input id="runModel" placeholder="{{PLACEHOLDER_MODEL}}" />
+          </label>
+          <label>
+            <span>{{LABEL_PROMPT}}</span>
+            <textarea id="prompt" rows="4" placeholder="{{PLACEHOLDER_PROMPT}}"></textarea>
+          </label>
+        </div>
+        <div class="row">
+          <button id="btnRun" class="btn">{{BTN_RUN}}</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>{{SECTION_OUTPUT}}</h2>
+        <pre id="out" class="out"></pre>
+      </section>
+    </main>
+
+    <script>
+      const token = "{{TOKEN}}";
+      const out = document.getElementById("out");
+
+      async function api(path, body) {
+        const res = await fetch(path + "?t=" + encodeURIComponent(token), {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-Token": token },
+          body: JSON.stringify(body || {})
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || ("HTTP " + res.status));
+        return data;
+      }
+
+      function show(data) {
+        let s = "";
+        if (data.error) s += "ERROR: " + data.error + "\n";
+        if (typeof data.exitCode === "number") s += "exitCode: " + data.exitCode + "\n\n";
+        if (data.output) s += data.output;
+        out.textContent = s;
+      }
+
+      async function loadConfig() {
+        const res = await fetch("/api/config?t=" + encodeURIComponent(token), {
+          headers: { "X-Token": token }
+        });
+        const data = await res.json();
+        document.getElementById("cfgPath").textContent = data.configPath;
+        document.getElementById("host").value = data.host || "";
+        document.getElementById("lang").value = data.lang || "en";
+      }
+
+      document.getElementById("btnList").addEventListener("click", async () => {
+        show(await api("/api/list"));
+      });
+      document.getElementById("btnPull").addEventListener("click", async () => {
+        const model = document.getElementById("pullModel").value;
+        show(await api("/api/pull", { model }));
+      });
+      document.getElementById("btnRun").addEventListener("click", async () => {
+        const model = document.getElementById("runModel").value;
+        const prompt = document.getElementById("prompt").value;
+        show(await api("/api/run", { model, prompt }));
+      });
+      document.getElementById("btnSave").addEventListener("click", async () => {
+        const host = document.getElementById("host").value;
+        const lang = document.getElementById("lang").value;
+        await api("/api/config/set", { host, lang });
+        await loadConfig();
+        out.textContent = "{{MSG_SAVED_RESTART}}";
+      });
+
+      loadConfig();
+    </script>
+  </body>
+</html>

@@ -8,7 +8,7 @@ $ErrorActionPreference = 'Stop'
 
 if ($null -eq $OllamaArgs) { $OllamaArgs = @() }
 
-$DefaultHost = 'http://10.65.117.238:11434'
+$DefaultHost = 'http://127.0.0.1:11434'
 
 function Show-Help {
   Write-Output 'Usage: ollama-remote.ps1 [--host <url>] <ollama-args...>'
@@ -23,7 +23,7 @@ function Show-Help {
   Write-Output 'Examples:'
   Write-Output '  .\ollama-remote.ps1 list'
   Write-Output '  .\ollama-remote.ps1 run llama3:8b'
-  Write-Output '  .\ollama-remote.ps1 --host http://10.65.117.238:11434 ps'
+  Write-Output '  .\ollama-remote.ps1 --host http://127.0.0.1:11434 ps'
 }
 
 $HostOverride = $null
@@ -61,10 +61,6 @@ if ([string]::IsNullOrWhiteSpace($HostOverride)) {
   }
 } else {
   $env:OLLAMA_HOST = $HostOverride
-}
-
-if ([string]::IsNullOrWhiteSpace($env:NO_PROXY)) {
-  $env:NO_PROXY = '10.65.117.238'
 }
 
 $OllamaExe = $env:OLLAMA_EXE

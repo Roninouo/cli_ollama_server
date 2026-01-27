@@ -10,38 +10,115 @@ permissions:
 
 jobs:
   build:
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            goos: windows
+            goarch: amd64
+            ext: .exe
+          - os: ubuntu-latest
+            goos: linux
+            goarch: amd64
+            ext: ''
+          - os: macos-latest
+            goos: darwin
+            goarch: amd64
+            ext: ''
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build zip + checksum
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Build binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag='${{ github.ref_name }}'
+          dist="dist/${{ matrix.goos }}-${{ matrix.goarch }}"
+          mkdir -p "$dist"
+
+          name="ollama-remote${{ matrix.ext }}"
+          GOOS='${{ matrix.goos }}' GOARCH='${{ matrix.goarch }}' \
+            go build -ldflags "-s -w -X cli_ollama_server/internal/app.version=$tag -X cli_ollama_server/internal/app.commit=${{ github.sha }}" \
+            -o "$dist/$name" ./cmd/ollama-remote
+
+      - name: Package (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag='${{ github.ref_name }}'
+          dist="dist/${{ matrix.goos }}-${{ matrix.goarch }}"
+
+          cp README.md LICENSE install.ps1 uninstall.ps1 install.sh uninstall.sh config.example.toml .env.example -t "$dist"
+          cp -r docs "$dist/docs"
+
+          zipName="cli_ollama_server_${tag}_${{ matrix.goos }}-${{ matrix.goarch }}.zip"
+          (cd "$dist" && zip -qr "../$zipName" .)
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
         shell: pwsh
         run: |
           Set-StrictMode -Version Latest
           $tag = '${{ github.ref_name }}'
-          $dist = Join-Path $PWD 'dist'
-          New-Item -ItemType Directory -Force -Path $dist | Out-Null
+          $dist = Join-Path $PWD 'dist\\${{ matrix.goos }}-${{ matrix.goarch }}'
 
-          $zipName = "cli_ollama_server_${tag}.zip"
-          $zipPath = Join-Path $dist $zipName
+          Copy-Item -Force README.md,LICENSE,install.ps1,uninstall.ps1,install.sh,uninstall.sh,config.example.toml,'.env.example' -Destination $dist
+          New-Item -ItemType Directory -Force -Path (Join-Path $dist 'docs') | Out-Null
+          Copy-Item -Recurse -Force (Join-Path $PWD 'docs\\*') -Destination (Join-Path $dist 'docs')
+
+          $zipName = "cli_ollama_server_${tag}_${{ matrix.goos }}-${{ matrix.goarch }}.zip"
+          $zipPath = Join-Path (Join-Path $PWD 'dist') $zipName
           if (Test-Path $zipPath) { Remove-Item -Force $zipPath }
+          Compress-Archive -Path (Join-Path $dist '*') -DestinationPath $zipPath -Force
 
-          $files = @(
-            'ollama-remote.bat',
-            'ollama-remote.ps1',
-            'install.ps1',
-            'uninstall.ps1',
-            'README.md',
-            'LICENSE'
-          )
+      - name: Checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd dist
+          f=$(ls -1 *.zip)
+          if command -v shasum >/dev/null 2>&1; then
+            shasum -a 256 "$f" | awk '{print $1}' > "$f.sha256"
+          else
+            sha256sum "$f" | awk '{print $1}' > "$f.sha256"
+          fi
 
-          Compress-Archive -Path $files -DestinationPath $zipPath -Force
-          (Get-FileHash -Algorithm SHA256 -Path $zipPath).Hash | Out-File -Encoding ascii -NoNewline ("$zipPath.sha256")
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: |
+            dist/*.zip
+            dist/*.sha256
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Flatten artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          find dist -type f \( -name '*.zip' -o -name '*.sha256' \) -exec cp {} out/ \;
 
       - name: GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/*.zip
-            dist/*.sha256
+            out/*.zip
+            out/*.sha256

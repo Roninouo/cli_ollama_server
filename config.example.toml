@@ -1,0 +1,4 @@
+host = "https://ollama.example.com:11434"
+lang = "en"
+ollama_exe = ""
+no_proxy_auto = false

@@ -6,30 +6,59 @@ on:
 
 jobs:
   validate:
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: PowerShell lint
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Go test
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -n "$(gofmt -l cmd internal)" ]]; then
+            echo "gofmt required; run: gofmt -w cmd internal" >&2
+            gofmt -l cmd internal
+            exit 1
+          fi
+          go test ./...
+          go vet ./...
+
+      - name: Build
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            go build -o dist/ollama-remote.exe ./cmd/ollama-remote
+          else
+            go build -o dist/ollama-remote ./cmd/ollama-remote
+          fi
+
+      - name: CLI help
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            ./dist/ollama-remote.exe --help
+          else
+            ./dist/ollama-remote --help
+          fi
+
+      - name: PowerShell lint + scripts
+        if: runner.os == 'Windows'
         shell: pwsh
         run: |
           Set-StrictMode -Version Latest
           Install-Module PSScriptAnalyzer -Scope CurrentUser -Force
           Invoke-ScriptAnalyzer -Path . -Recurse -Severity Warning -ErrorAction Stop
-
-      - name: Wrapper help (Batch)
-        shell: cmd
-        run: |
-          call .\ollama-remote.bat --help
-
-      - name: Wrapper help (PowerShell)
-        shell: pwsh
-        run: |
-          .\ollama-remote.ps1 --help
-
-      - name: Install/Uninstall dry run
-        shell: pwsh
-        run: |
           .\install.ps1 -DryRun
           .\uninstall.ps1 -DryRun

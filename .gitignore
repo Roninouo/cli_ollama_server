@@ -6,3 +6,13 @@ Thumbs.db
 dist/
 *.zip
 *.sha256
+
+# Local builds
+/ollama-remote
+/ollama-remote.exe
+
+# Local configuration
+.env
+.env.*
+.ollama-remote.env
+.ollama-remote.toml
