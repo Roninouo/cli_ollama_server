@@ -12,3 +12,5 @@ The UI:
 - binds to `127.0.0.1` only
 - uses the same hybrid runner as the CLI (wrapper mode when available, native mode as fallback)
 - does not persist prompt history by default
+
+Tip: the UI uses your effective config. If you want it to use the local Ollama CLI, set `mode=wrapper` and (if needed) `ollama_exe`.

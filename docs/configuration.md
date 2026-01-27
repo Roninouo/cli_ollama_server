@@ -4,7 +4,7 @@
 
 - `host`: the Ollama server address (mapped to `OLLAMA_HOST` for the spawned `ollama` process)
 - `lang`: UI/help/error language for this tool (`en`, `es`, `de`, or `auto`)
-- `ollama_exe`: full path to the official Ollama CLI executable
+- `ollama_exe`: full path to the official Ollama CLI executable (if empty, uses `ollama` on PATH)
 - `mode`: execution mode (`auto`, `wrapper`, `native`)
 - `no_proxy_auto`: if `true`, adds the host's hostname to `NO_PROXY` for the spawned process only
 - `unsafe`: if `true`, enables mutating/advanced operations in native mode (disabled by default)
@@ -44,6 +44,20 @@ Set the host:
 
 ```bash
 ollama-remote config set host https://ollama.example.com:11434
+```
+
+Point to a local Ollama CLI:
+
+```powershell
+# Windows example
+ollama-remote config set ollama_exe "C:\Program Files\Ollama\ollama.exe"
+ollama-remote config set mode wrapper
+```
+
+TOML tip (Windows paths): use single quotes to avoid backslash escaping:
+
+```toml
+ollama_exe = 'C:\Program Files\Ollama\ollama.exe'
 ```
 
 Project-local `.ollama-remote.env`:

@@ -5,6 +5,17 @@
 - Install Ollama and ensure `ollama` is available on PATH
 - Or set `OLLAMA_EXE` / `ollama_exe` to the full path
 
+Windows tips:
+
+```powershell
+where.exe ollama
+Get-Command ollama -ErrorAction SilentlyContinue
+```
+
+Common install path:
+
+- `C:\Program Files\Ollama\ollama.exe`
+
 If you do not want to install the CLI, use native mode for supported commands:
 
 ```bash

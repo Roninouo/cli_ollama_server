@@ -60,6 +60,25 @@ Mode behavior:
   - If `ollama` is available: use wrapper mode
   - Otherwise: use native mode
 
+### Using the local Ollama CLI (ollama.exe)
+
+Wrapper mode runs the upstream CLI on your machine (Windows: `ollama.exe`) and forwards the args.
+
+Resolution rules:
+
+- If `--ollama-exe` / `OLLAMA_EXE` / `ollama_exe` is set: that path must exist (unless `mode=native`).
+- Otherwise `ollama-remote` looks for `ollama` on `PATH`.
+
+Examples (Windows):
+
+```powershell
+# Force wrapper mode using PATH
+ollama-remote --mode wrapper list
+
+# Force wrapper mode using an explicit path
+ollama-remote --mode wrapper --ollama-exe "C:\Program Files\Ollama\ollama.exe" list
+```
+
 Validation rules (no silent downgrades):
 
 - If `OLLAMA_EXE` / `--ollama-exe` is set (and mode is not `native`) but cannot be resolved: fail fast (exit `2`).

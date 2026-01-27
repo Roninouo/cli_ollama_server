@@ -2,6 +2,11 @@
 
 This project ships a single CLI binary: `ollama-remote`.
 
+It does not ship the upstream Ollama CLI or server.
+
+- If you want wrapper mode (`--mode wrapper`), install Ollama locally so `ollama` / `ollama.exe` exists.
+- If you do not want a local Ollama install, use native mode (`--mode native`) for supported commands.
+
 ## Windows (recommended)
 
 1) Download the latest release zip.
@@ -10,6 +15,20 @@ This project ships a single CLI binary: `ollama-remote`.
 
 ```powershell
 pwsh -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
+```
+
+Optional: verify the local Ollama CLI is available:
+
+```powershell
+where.exe ollama
+ollama --version
+```
+
+If it is not on PATH, configure `ollama-remote` with an explicit path:
+
+```powershell
+ollama-remote config set ollama_exe "C:\Program Files\Ollama\ollama.exe"
+ollama-remote config set mode wrapper
 ```
 
 ## macOS / Linux
