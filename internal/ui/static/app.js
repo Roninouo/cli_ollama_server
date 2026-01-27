@@ -1,8 +1,7 @@
-// app.ts
+// frontend/app.ts
 var qs = (sel, root = document) => {
   const el = root.querySelector(sel);
-  if (!el)
-    throw new Error(`Missing element: ${sel}`);
+  if (!el) throw new Error(`Missing element: ${sel}`);
   return el;
 };
 var qsa = (sel, root = document) => Array.from(root.querySelectorAll(sel));
@@ -51,8 +50,7 @@ function showError(label, err) {
   toast(msg);
 }
 function toast(message) {
-  if (toastTimer)
-    window.clearTimeout(toastTimer);
+  if (toastTimer) window.clearTimeout(toastTimer);
   elToast.textContent = message;
   elToast.hidden = false;
   toastTimer = window.setTimeout(() => {
@@ -61,11 +59,9 @@ function toast(message) {
 }
 function setBusy(busy) {
   busyCount += busy ? 1 : -1;
-  if (busyCount < 0)
-    busyCount = 0;
+  if (busyCount < 0) busyCount = 0;
   const on = busyCount > 0;
-  for (const b of [btnList, btnRun, btnPull, btnSave])
-    b.disabled = on;
+  for (const b of [btnList, btnRun, btnPull, btnSave]) b.disabled = on;
 }
 async function apiPost(path, body = {}) {
   const res = await fetch(`${path}?t=${encodeURIComponent(token)}`, {
@@ -74,8 +70,7 @@ async function apiPost(path, body = {}) {
     body: JSON.stringify(body)
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok)
-    throw new Error(data.error || `HTTP ${res.status}`);
+  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
   return data;
 }
 async function apiGetConfig() {
@@ -83,85 +78,146 @@ async function apiGetConfig() {
     headers: { "X-Token": token }
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok)
-    throw new Error(data.error || `HTTP ${res.status}`);
+  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
   return data;
 }
 function formatOutput(label, data) {
   const lines = [];
-  if (label)
-    lines.push(`[${label}]`);
-  if (data.error)
-    lines.push(`ERROR: ${data.error}`);
-  if (typeof data.exitCode === "number")
-    lines.push(`exitCode: ${data.exitCode}`);
-  if (lines.length)
-    lines.push("");
-  if (data.output)
-    lines.push(String(data.output));
+  if (label) lines.push(`[${label}]`);
+  if (data.error) lines.push(`ERROR: ${data.error}`);
+  if (typeof data.exitCode === "number") lines.push(`exitCode: ${data.exitCode}`);
+  if (lines.length) lines.push("");
+  if (data.output) lines.push(String(data.output));
   return lines.join("\n");
 }
 function showOutput(label, data) {
   const next = formatOutput(label, data).trimEnd();
-  if (next)
-    elOut.textContent = next;
+  if (next) elOut.textContent = next;
 }
 function uniq(list) {
   const out = [];
   const seen = /* @__PURE__ */ new Set();
   for (const s of list) {
-    if (!s || seen.has(s))
-      continue;
+    if (!s || seen.has(s)) continue;
     seen.add(s);
     out.push(s);
   }
   return out;
 }
 function parseModelsFromListOutput(output) {
-  const lines = String(output || "").split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-  if (!lines.length)
-    return [];
-  const start = /^NAME\s+/i.test(lines[0]) ? 1 : 0;
-  const out = [];
+  const lines = String(output || "").split(/\r?\n/).map((l) => l.trimEnd()).filter((l) => l.trim().length > 0);
+  if (!lines.length) return [];
+  const header = lines[0].trim();
+  const start = /^NAME\s+/i.test(header) ? 1 : 0;
+  const rows = [];
   for (let i = start; i < lines.length; i++) {
-    const m = lines[i].match(/^(\S+)/);
-    if (m && m[1])
-      out.push(m[1]);
+    const line = lines[i].trim();
+    if (!line) continue;
+    const parts = line.split(/\s{2,}/g).map((p) => p.trim()).filter(Boolean);
+    if (parts.length >= 4) {
+      rows.push({ name: parts[0], id: parts[1], size: parts[2], modified: parts.slice(3).join(" ") });
+      continue;
+    }
+    const m = line.match(/^(\S+)/);
+    if (m && m[1]) rows.push({ name: m[1] });
   }
-  return uniq(out);
+  const names = uniq(rows.map((r) => r.name));
+  const byName = /* @__PURE__ */ new Map();
+  for (const r of rows) {
+    if (!byName.has(r.name)) byName.set(r.name, r);
+  }
+  return names.map((n) => byName.get(n)).filter(Boolean);
 }
+function modelNames() {
+  return models.map((m) => m.name).filter(Boolean);
+}
+var MODELS_COLS = 5;
 function renderModelsTable(filter = "") {
   const f = filter.trim().toLowerCase();
-  const rows = f ? models.filter((m) => m.toLowerCase().includes(f)) : models.slice();
+  const rows = f ? models.filter((m) => `${m.name} ${m.id || ""}`.toLowerCase().includes(f)) : models.slice();
   elModelsBody.innerHTML = "";
   if (!rows.length) {
     const tr = document.createElement("tr");
     const td = document.createElement("td");
     td.className = "muted";
+    td.colSpan = MODELS_COLS;
     td.textContent = models.length ? "\u2014" : modelsHintText;
     tr.appendChild(td);
     elModelsBody.appendChild(tr);
     return;
   }
-  for (const name of rows) {
+  for (const m of rows) {
     const tr = document.createElement("tr");
-    const td = document.createElement("td");
-    td.textContent = name;
-    td.style.cursor = "pointer";
-    td.title = name;
-    td.addEventListener("click", () => {
-      elRunModel.value = name;
-      elPullModel.value = name;
+    const tdName = document.createElement("td");
+    const nameBtn = document.createElement("button");
+    nameBtn.type = "button";
+    nameBtn.className = "cellbtn";
+    nameBtn.title = m.name;
+    nameBtn.setAttribute("aria-label", `Open run with model ${m.name}`);
+    const title = document.createElement("div");
+    title.className = "cell__title";
+    title.textContent = m.name;
+    nameBtn.appendChild(title);
+    if (m.id) {
+      const sub = document.createElement("div");
+      sub.className = "cell__sub hide-sm";
+      sub.textContent = m.id;
+      nameBtn.appendChild(sub);
+    }
+    nameBtn.addEventListener("click", () => {
+      elRunModel.value = m.name;
+      elPullModel.value = m.name;
       location.hash = "#run";
       elPrompt.focus();
     });
-    tr.appendChild(td);
+    tdName.appendChild(nameBtn);
+    const tdId = document.createElement("td");
+    tdId.className = "hide-sm mono";
+    tdId.textContent = m.id || "\u2014";
+    const tdSize = document.createElement("td");
+    tdSize.className = "mono";
+    tdSize.textContent = m.size || "\u2014";
+    const tdMod = document.createElement("td");
+    tdMod.className = "hide-sm mono";
+    tdMod.textContent = m.modified || "\u2014";
+    const tdAct = document.createElement("td");
+    tdAct.className = "actions";
+    const btnRunRow = document.createElement("button");
+    btnRunRow.type = "button";
+    btnRunRow.className = "btn btn--ghost btn--sm";
+    btnRunRow.textContent = btnRun.textContent || "Run";
+    btnRunRow.title = `${btnRunRow.textContent} ${m.name}`;
+    btnRunRow.setAttribute("aria-label", `Run model ${m.name}`);
+    btnRunRow.addEventListener("click", (e) => {
+      e.stopPropagation();
+      elRunModel.value = m.name;
+      location.hash = "#run";
+      elPrompt.focus();
+    });
+    const btnPullRow = document.createElement("button");
+    btnPullRow.type = "button";
+    btnPullRow.className = "btn btn--ghost btn--sm";
+    btnPullRow.textContent = btnPull.textContent || "Pull";
+    btnPullRow.title = `${btnPullRow.textContent} ${m.name}`;
+    btnPullRow.setAttribute("aria-label", `Pull model ${m.name}`);
+    btnPullRow.addEventListener("click", (e) => {
+      e.stopPropagation();
+      elPullModel.value = m.name;
+      location.hash = "#pull";
+    });
+    tdAct.appendChild(btnRunRow);
+    tdAct.appendChild(btnPullRow);
+    tr.appendChild(tdName);
+    tr.appendChild(tdId);
+    tr.appendChild(tdSize);
+    tr.appendChild(tdMod);
+    tr.appendChild(tdAct);
     elModelsBody.appendChild(tr);
   }
 }
 function renderModelDatalist() {
   elModelDatalist.innerHTML = "";
-  for (const name of models) {
+  for (const name of modelNames()) {
     const opt = document.createElement("option");
     opt.value = name;
     elModelDatalist.appendChild(opt);
@@ -193,12 +249,9 @@ function applyTheme(next) {
 }
 function toggleTheme() {
   const cur = document.documentElement.getAttribute("data-theme");
-  if (!cur)
-    applyTheme("dark");
-  else if (cur === "dark")
-    applyTheme("light");
-  else
-    applyTheme(null);
+  if (!cur) applyTheme("dark");
+  else if (cur === "dark") applyTheme("light");
+  else applyTheme(null);
 }
 async function loadConfig() {
   const data = await apiGetConfig();
@@ -272,8 +325,7 @@ async function saveConfig() {
 }
 async function copyOutput() {
   const text = elOut.textContent || "";
-  if (!text.trim())
-    return;
+  if (!text.trim()) return;
   try {
     await navigator.clipboard.writeText(text);
   } catch {
@@ -301,12 +353,9 @@ function toggleWrap() {
 function restoreDrafts() {
   const lastModel = localStorage.getItem("ollama-remote.ui.lastModel") || "";
   const lastPrompt = localStorage.getItem("ollama-remote.ui.lastPrompt") || "";
-  if (lastModel && !elRunModel.value)
-    elRunModel.value = lastModel;
-  if (lastModel && !elPullModel.value)
-    elPullModel.value = lastModel;
-  if (lastPrompt && !elPrompt.value)
-    elPrompt.value = lastPrompt;
+  if (lastModel && !elRunModel.value) elRunModel.value = lastModel;
+  if (lastModel && !elPullModel.value) elPullModel.value = lastModel;
+  if (lastPrompt && !elPrompt.value) elPrompt.value = lastPrompt;
 }
 function wire() {
   for (const btn of qsa(".nav__item")) {
@@ -334,8 +383,7 @@ function wire() {
 }
 function boot() {
   const savedTheme = localStorage.getItem("ollama-remote.ui.theme");
-  if (savedTheme === "dark" || savedTheme === "light")
-    applyTheme(savedTheme);
+  if (savedTheme === "dark" || savedTheme === "light") applyTheme(savedTheme);
   wire();
   loadConfig().catch((err) => {
     elOut.textContent = `ERROR: ${String(err?.message || err)}`;

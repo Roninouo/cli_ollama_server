@@ -15,6 +15,13 @@ type ConfigResponse = {
   selectedMode?: string;
 };
 
+type ModelRow = {
+  name: string;
+  id?: string;
+  size?: string;
+  modified?: string;
+};
+
 const qs = <T extends Element>(sel: string, root: Document | Element = document): T => {
   const el = root.querySelector(sel);
   if (!el) throw new Error(`Missing element: ${sel}`);
@@ -64,7 +71,7 @@ const btnWrap = qs<HTMLButtonElement>("#btnWrap");
 
 let toastTimer: number | undefined;
 let busyCount = 0;
-let models: string[] = [];
+let models: ModelRow[] = [];
 
 function errMsg(err: unknown): string {
   const anyErr = err as any;
@@ -139,54 +146,151 @@ function uniq(list: string[]): string[] {
   return out;
 }
 
-function parseModelsFromListOutput(output: string): string[] {
+function parseModelsFromListOutput(output: string): ModelRow[] {
   const lines = String(output || "")
     .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter(Boolean);
+    .map((l) => l.trimEnd())
+    .filter((l) => l.trim().length > 0);
+
   if (!lines.length) return [];
-  const start = /^NAME\s+/i.test(lines[0]) ? 1 : 0;
-  const out: string[] = [];
+
+  const header = lines[0].trim();
+  const start = /^NAME\s+/i.test(header) ? 1 : 0;
+
+  const rows: ModelRow[] = [];
   for (let i = start; i < lines.length; i++) {
-    const m = lines[i].match(/^(\S+)/);
-    if (m && m[1]) out.push(m[1]);
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    // Ollama CLI output is column-aligned; split on 2+ spaces.
+    const parts = line.split(/\s{2,}/g).map((p) => p.trim()).filter(Boolean);
+
+    // Expected: NAME, ID, SIZE, MODIFIED
+    if (parts.length >= 4) {
+      rows.push({ name: parts[0], id: parts[1], size: parts[2], modified: parts.slice(3).join(" ") });
+      continue;
+    }
+    // Fallback: first token as name.
+    const m = line.match(/^(\S+)/);
+    if (m && m[1]) rows.push({ name: m[1] });
   }
-  return uniq(out);
+
+  const names = uniq(rows.map((r) => r.name));
+  const byName = new Map<string, ModelRow>();
+  for (const r of rows) {
+    if (!byName.has(r.name)) byName.set(r.name, r);
+  }
+  return names.map((n) => byName.get(n)!).filter(Boolean);
 }
+
+function modelNames(): string[] {
+  return models.map((m) => m.name).filter(Boolean);
+}
+
+const MODELS_COLS = 5;
 
 function renderModelsTable(filter = "") {
   const f = filter.trim().toLowerCase();
-  const rows = f ? models.filter((m) => m.toLowerCase().includes(f)) : models.slice();
+  const rows = f
+    ? models.filter((m) => `${m.name} ${m.id || ""}`.toLowerCase().includes(f))
+    : models.slice();
   elModelsBody.innerHTML = "";
   if (!rows.length) {
     const tr = document.createElement("tr");
     const td = document.createElement("td");
     td.className = "muted";
+    td.colSpan = MODELS_COLS;
     td.textContent = models.length ? "—" : modelsHintText;
     tr.appendChild(td);
     elModelsBody.appendChild(tr);
     return;
   }
-  for (const name of rows) {
+  for (const m of rows) {
     const tr = document.createElement("tr");
-    const td = document.createElement("td");
-    td.textContent = name;
-    td.style.cursor = "pointer";
-    td.title = name;
-    td.addEventListener("click", () => {
-      elRunModel.value = name;
-      elPullModel.value = name;
+
+    const tdName = document.createElement("td");
+
+    const nameBtn = document.createElement("button");
+    nameBtn.type = "button";
+    nameBtn.className = "cellbtn";
+    nameBtn.title = m.name;
+    nameBtn.setAttribute("aria-label", `Open run with model ${m.name}`);
+
+    const title = document.createElement("div");
+    title.className = "cell__title";
+    title.textContent = m.name;
+    nameBtn.appendChild(title);
+
+    if (m.id) {
+      const sub = document.createElement("div");
+      sub.className = "cell__sub hide-sm";
+      sub.textContent = m.id;
+      nameBtn.appendChild(sub);
+    }
+
+    nameBtn.addEventListener("click", () => {
+      elRunModel.value = m.name;
+      elPullModel.value = m.name;
       location.hash = "#run";
       elPrompt.focus();
     });
-    tr.appendChild(td);
+
+    tdName.appendChild(nameBtn);
+
+    const tdId = document.createElement("td");
+    tdId.className = "hide-sm mono";
+    tdId.textContent = m.id || "—";
+
+    const tdSize = document.createElement("td");
+    tdSize.className = "mono";
+    tdSize.textContent = m.size || "—";
+
+    const tdMod = document.createElement("td");
+    tdMod.className = "hide-sm mono";
+    tdMod.textContent = m.modified || "—";
+
+    const tdAct = document.createElement("td");
+    tdAct.className = "actions";
+    const btnRunRow = document.createElement("button");
+    btnRunRow.type = "button";
+    btnRunRow.className = "btn btn--ghost btn--sm";
+    btnRunRow.textContent = btnRun.textContent || "Run";
+    btnRunRow.title = `${btnRunRow.textContent} ${m.name}`;
+    btnRunRow.setAttribute("aria-label", `Run model ${m.name}`);
+    btnRunRow.addEventListener("click", (e) => {
+      e.stopPropagation();
+      elRunModel.value = m.name;
+      location.hash = "#run";
+      elPrompt.focus();
+    });
+
+    const btnPullRow = document.createElement("button");
+    btnPullRow.type = "button";
+    btnPullRow.className = "btn btn--ghost btn--sm";
+    btnPullRow.textContent = btnPull.textContent || "Pull";
+    btnPullRow.title = `${btnPullRow.textContent} ${m.name}`;
+    btnPullRow.setAttribute("aria-label", `Pull model ${m.name}`);
+    btnPullRow.addEventListener("click", (e) => {
+      e.stopPropagation();
+      elPullModel.value = m.name;
+      location.hash = "#pull";
+    });
+
+    tdAct.appendChild(btnRunRow);
+    tdAct.appendChild(btnPullRow);
+
+    tr.appendChild(tdName);
+    tr.appendChild(tdId);
+    tr.appendChild(tdSize);
+    tr.appendChild(tdMod);
+    tr.appendChild(tdAct);
     elModelsBody.appendChild(tr);
   }
 }
 
 function renderModelDatalist() {
   elModelDatalist.innerHTML = "";
-  for (const name of models) {
+  for (const name of modelNames()) {
     const opt = document.createElement("option");
     opt.value = name;
     elModelDatalist.appendChild(opt);

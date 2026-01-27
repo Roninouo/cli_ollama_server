@@ -94,6 +94,10 @@
   "ui.placeholder.ollama_exe": "C:\\Program Files\\Ollama\\ollama.exe",
 
   "ui.table.model": "Model",
+  "ui.table.id": "ID",
+  "ui.table.size": "Size",
+  "ui.table.modified": "Modified",
+  "ui.table.actions": "Actions",
   "ui.models.hint": "Run “List models” to populate this list.",
   "ui.hint.run_shortcut": "Tip: Ctrl+Enter to run",
   "ui.hint.pull_unsafe": "Native mode pull requires unsafe=true.",

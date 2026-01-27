@@ -265,7 +265,7 @@ html[data-theme="dark"] .nav__item { color: rgba(232, 236, 246, 0.86); }
 
 @media (prefers-reduced-motion: reduce) {
   .panel { animation: none; }
-  .iconbtn, .btn, .nav__item { transition: none; }
+  .iconbtn, .btn, .nav__item, .check input[type="checkbox"] { transition: none; }
 }
 
 .panel__head {
@@ -381,6 +381,56 @@ html[data-theme="dark"] .check {
   background: rgba(255, 255, 255, 0.04);
 }
 
+.check input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid rgba(27, 36, 48, 0.22);
+  background: rgba(255, 255, 255, 0.70);
+  position: relative;
+  cursor: pointer;
+  flex: none;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+html[data-theme="dark"] .check input[type="checkbox"] {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.check input[type="checkbox"]::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: rgba(27, 36, 48, 0.70);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
+  transition: transform 140ms ease, background 140ms ease;
+}
+
+html[data-theme="dark"] .check input[type="checkbox"]::before {
+  background: rgba(232, 236, 246, 0.82);
+}
+
+.check input[type="checkbox"]:checked {
+  background: rgba(27, 111, 106, 0.22);
+  border-color: rgba(27, 111, 106, 0.45);
+}
+
+.check input[type="checkbox"]:checked::before {
+  transform: translateX(18px);
+  background: rgba(27, 111, 106, 0.92);
+}
+
+.check span {
+  flex: 1;
+}
+
 .btn {
   border-radius: 14px;
   border: 1px solid rgba(27, 111, 106, 0.26);
@@ -437,6 +487,67 @@ html[data-theme="dark"] .btn--ghost { border-color: rgba(255, 255, 255, 0.12); }
 html[data-theme="dark"] .table th { background: rgba(255, 255, 255, 0.04); }
 
 .table tr:last-child td { border-bottom: none; }
+
+.cell__title {
+  font-weight: 700;
+  letter-spacing: 0.1px;
+}
+
+.cellbtn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.cellbtn:focus-visible {
+  outline: 2px solid rgba(27, 111, 106, 0.65);
+  outline-offset: 3px;
+  border-radius: 10px;
+}
+
+.cell__sub {
+  margin-top: 2px;
+  font: 11.5px/1.4 var(--mono);
+  color: var(--muted);
+  opacity: 0.95;
+}
+
+.table td.actions {
+  text-align: right;
+  white-space: normal;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn--sm {
+  padding: 7px 10px;
+  font-size: 12px;
+}
+
+.btn--icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn--icon svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+  opacity: 0.82;
+}
+
+@media (max-width: 640px) {
+  .hide-sm { display: none; }
+  .table th, .table td { padding: 10px 10px; }
+}
 
 .output {
   position: sticky;

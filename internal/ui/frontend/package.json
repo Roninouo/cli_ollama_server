@@ -7,7 +7,7 @@
     "typescript": "^5.4.5"
   },
   "scripts": {
-    "build": "esbuild ./app.ts --bundle --platform=browser --format=esm --target=es2020 --outfile=../static/app.js",
-    "check": "tsc -p ./tsconfig.json --noEmit"
+    "build": "npx --no-install esbuild ./app.ts --bundle --platform=browser --format=esm --target=es2020 --outfile=../static/app.js",
+    "check": "npx --no-install tsc -p ./tsconfig.json --noEmit"
   }
 }
