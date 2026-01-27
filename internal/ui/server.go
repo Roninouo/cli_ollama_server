@@ -23,6 +23,8 @@ import (
 	"cli_ollama_server/internal/ollamarunner"
 )
 
+//go:generate npx --yes esbuild ./frontend/app.ts --bundle --platform=browser --format=esm --target=es2020 --outfile=./static/app.js
+
 //go:embed static/*
 var staticFS embed.FS
 

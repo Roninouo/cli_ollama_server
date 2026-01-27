@@ -32,6 +32,18 @@
 - `mode = auto`
 - `unsafe = false`
 
+Note: global flags are only parsed before the command name. For example:
+
+```bash
+ollama-remote --host http://10.65.117.212:11434 doctor
+```
+
+Not:
+
+```bash
+ollama-remote doctor --host http://10.65.117.212:11434
+```
+
 ## Examples
 
 Create a user config file:

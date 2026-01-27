@@ -11,6 +11,9 @@ dist/
 /ollama-remote
 /ollama-remote.exe
 
+# UI frontend
+internal/ui/frontend/node_modules/
+
 # Local configuration
 .env
 .env.*

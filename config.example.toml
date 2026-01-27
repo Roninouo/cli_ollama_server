@@ -1,4 +1,5 @@
-host = "https://ollama.example.com:11434"
+# Ollama server address. For remote/LAN access, use that machine's IP (example: http://10.65.117.212:11434)
+host = "http://127.0.0.1:11434"
 lang = "en"
 ollama_exe = ""
 mode = "auto"

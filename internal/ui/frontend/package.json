@@ -1,0 +1,13 @@
+{
+  "name": "ollama-remote-ui",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "esbuild": "^0.20.2",
+    "typescript": "^5.4.5"
+  },
+  "scripts": {
+    "build": "esbuild ./app.ts --bundle --platform=browser --format=esm --target=es2020 --outfile=../static/app.js",
+    "check": "tsc -p ./tsconfig.json --noEmit"
+  }
+}

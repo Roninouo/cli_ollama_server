@@ -155,11 +155,25 @@ func Run(args []string) int {
 		Translator:  tr,
 	})
 	if runErr != nil {
+		selected := eff.Mode
+		if selected == "auto" {
+			if _, err := execollama.ResolveExecutable(eff.OllamaExe); err == nil {
+				selected = "wrapper"
+			} else {
+				selected = "native"
+			}
+		}
+
 		if errors.Is(runErr, execollama.ErrNotFound) {
 			fmt.Fprintln(os.Stderr, tr.Sprintf("error.ollama_not_found", "hint", envMeta.OllamaHint()))
 			return 127
 		}
 		if code != 0 {
+			// Wrapper mode errors are usually already printed by the upstream CLI.
+			// Native mode returns rich errors that would otherwise be silent.
+			if selected == "native" {
+				fmt.Fprintln(os.Stderr, runErr.Error())
+			}
 			return code
 		}
 		fmt.Fprintln(os.Stderr, tr.Sprintf("error.ollama_failed", "error", runErr.Error()))

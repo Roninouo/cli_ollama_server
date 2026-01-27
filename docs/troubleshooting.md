@@ -28,6 +28,42 @@ If you set `--ollama-exe` / `OLLAMA_EXE` but the executable cannot be resolved (
 
 - Fix the path, or unset it to allow `mode=auto` to fall back to native mode
 
+If you want native mode without changing config:
+
+```bash
+ollama-remote --mode native list
+```
+
+Or unset the configured path:
+
+```bash
+ollama-remote config set ollama_exe ""
+```
+
+## Connection refused on LAN IP (e.g. 10.65.117.212)
+
+If Ollama works on the server machine via `http://127.0.0.1:11434` but fails via its LAN IP (for example `http://10.65.117.212:11434`), the Ollama server is likely bound to localhost only.
+
+Quick checks:
+
+```bash
+curl http://127.0.0.1:11434/api/version
+curl http://10.65.117.212:11434/api/version
+```
+
+To allow other machines on the LAN to connect:
+
+- Configure Ollama to listen on `0.0.0.0:11434` (or the LAN interface)
+- Allow inbound TCP `11434` in the firewall for your network
+
+Then point `ollama-remote` at the LAN host:
+
+```bash
+ollama-remote --mode native --host http://10.65.117.212:11434 list
+```
+
+Security note: only do this if you trust the network (or add network controls), since it exposes the Ollama API to other machines.
+
 ## Proxy issues
 
 If your environment uses a proxy and your host is a private address, you may need `NO_PROXY`.

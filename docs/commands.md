@@ -7,6 +7,24 @@
 
 See: `docs/hybrid.md`
 
+## Global flag ordering
+
+Global flags must appear before the command name.
+
+✅ Correct:
+
+```bash
+ollama-remote --host http://10.65.117.212:11434 --mode native doctor
+ollama-remote --host http://10.65.117.212:11434 ui
+```
+
+❌ Incorrect (flags after the command are treated as command args):
+
+```bash
+ollama-remote doctor --host http://10.65.117.212:11434
+ollama-remote ui --host http://10.65.117.212:11434
+```
+
 ## Wrapper commands
 
 ### `config`
@@ -20,11 +38,23 @@ See: `docs/hybrid.md`
 
 - `ollama-remote doctor`
 
+Example (explicit host):
+
+```bash
+ollama-remote --host http://10.65.117.212:11434 doctor
+```
+
 Checks basic setup and runs `ollama --version` using the resolved configuration.
 
 ### `ui`
 
 - `ollama-remote ui`
+
+Example (explicit host):
+
+```bash
+ollama-remote --host http://10.65.117.212:11434 ui
+```
 
 Starts an optional local web UI bound to `127.0.0.1` and opens your browser.
 
