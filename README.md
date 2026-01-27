@@ -25,6 +25,8 @@ It resolves configuration (`host`, `lang`, `ollama_exe`) and runs `ollama` with 
 pwsh -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
+If theres any issue related with permissions consider and trust issues with PowerShell try: `.\ollama-remote`, go to "get-help about_Command_Precedence" to obtain more detailed info.
+
 ## Quick Start (macOS / Linux)
 
 1) Download the latest release zip and extract it.
@@ -38,16 +40,16 @@ chmod +x ./install.sh ./ollama-remote
 3) Set your host (optional, defaults to `http://127.0.0.1:11434`):
 
 ```bash
-ollama-remote config init
-ollama-remote config set host https://ollama.example.com:11434
+.\ollama-remote config init
+.\ollama-remote config set host https://ollama.example.com:11434
 ```
 
 4) Use it:
 
 ```bash
-ollama-remote list
-ollama-remote run llama3:8b
-ollama-remote --host https://ollama.example.com:11434 ps
+.\ollama-remote list
+.\ollama-remote run llama3:8b
+.\ollama-remote --host https://ollama.example.com:11434 ps
 ```
 
 ## Documentation
