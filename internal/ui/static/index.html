@@ -6,125 +6,203 @@
     <title>{{TITLE}}</title>
     <link rel="stylesheet" href="/static/style.css" />
   </head>
-  <body>
-    <main class="wrap">
-      <header class="head">
-        <div>
-          <h1>ollama-remote</h1>
-          <p class="sub">{{SUBTITLE}}</p>
+  <body
+    data-token="{{TOKEN}}"
+    data-msg-copied="{{UI_MSG_COPIED}}"
+    data-msg-loading="{{UI_MSG_LOADING}}"
+    data-msg-working="{{UI_MSG_WORKING}}"
+    data-msg-saved="{{MSG_SAVED_RESTART}}"
+  >
+    <div class="bg" aria-hidden="true"></div>
+
+    <header class="top">
+      <div class="brand" role="banner">
+        <div class="brand__mark" aria-hidden="true">o</div>
+        <div class="brand__text">
+          <div class="brand__title">ollama-remote</div>
+          <div class="brand__sub">{{SUBTITLE}}</div>
         </div>
-        <div class="actions">
-          <button id="btnList" class="btn">{{BTN_LIST}}</button>
+      </div>
+
+      <div class="top__right">
+        <div class="chips" aria-label="{{UI_A11Y_STATUS}}">
+          <span class="chip" id="chipHost">—</span>
+          <span class="chip" id="chipMode">—</span>
         </div>
-      </header>
+        <button id="btnTheme" class="iconbtn" type="button" aria-label="{{UI_BTN_THEME}}" title="{{UI_BTN_THEME}}">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M12 18a6 6 0 1 0 0-12a6 6 0 0 0 0 12Zm0-16a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1Zm0 18a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0v-1a1 1 0 0 1 1-1Zm10-9a1 1 0 0 1-1 1h-1a1 1 0 1 1 0-2h1a1 1 0 0 1 1 1ZM5 12a1 1 0 0 1-1 1H3a1 1 0 1 1 0-2h1a1 1 0 0 1 1 1Zm14.07 7.07a1 1 0 0 1 0 1.41l-.7.7a1 1 0 1 1-1.41-1.41l.7-.7a1 1 0 0 1 1.41 0ZM7.45 5.86a1 1 0 0 1 0 1.41l-.7.7A1 1 0 1 1 5.34 6.56l.7-.7a1 1 0 0 1 1.41 0Zm11.62-0.52a1 1 0 0 1 0 1.41l-.7.7a1 1 0 0 1-1.41-1.41l.7-.7a1 1 0 0 1 1.41 0ZM7.45 18.14a1 1 0 0 1 0 1.41l-.7.7a1 1 0 1 1-1.41-1.41l.7-.7a1 1 0 0 1 1.41 0Z" />
+          </svg>
+        </button>
+      </div>
+    </header>
 
-      <section class="card">
-        <h2>{{SECTION_CONFIG}}</h2>
-        <div class="grid">
-          <label>
-            <span>{{LABEL_HOST}}</span>
-            <input id="host" placeholder="{{PLACEHOLDER_HOST}}" />
-          </label>
-          <label>
-            <span>{{LABEL_LANG}}</span>
-            <select id="lang">
-              <option value="en">English</option>
-              <option value="es">Español</option>
-              <option value="de">Deutsch</option>
-            </select>
-          </label>
-        </div>
-        <div class="row">
-          <button id="btnSave" class="btn">{{BTN_SAVE}}</button>
-          <span id="cfgPath" class="muted"></span>
-        </div>
-      </section>
+    <div class="shell">
+      <nav class="nav" aria-label="{{UI_A11Y_NAV}}">
+        <button class="nav__item" type="button" data-route="models" aria-current="page">
+          <span class="nav__dot" aria-hidden="true"></span>
+          <span class="nav__label">{{UI_NAV_MODELS}}</span>
+        </button>
+        <button class="nav__item" type="button" data-route="run">
+          <span class="nav__dot" aria-hidden="true"></span>
+          <span class="nav__label">{{UI_NAV_RUN}}</span>
+        </button>
+        <button class="nav__item" type="button" data-route="pull">
+          <span class="nav__dot" aria-hidden="true"></span>
+          <span class="nav__label">{{UI_NAV_PULL}}</span>
+        </button>
+        <button class="nav__item" type="button" data-route="settings">
+          <span class="nav__dot" aria-hidden="true"></span>
+          <span class="nav__label">{{UI_NAV_SETTINGS}}</span>
+        </button>
+      </nav>
 
-      <section class="card">
-        <h2>{{SECTION_PULL}}</h2>
-        <div class="row">
-          <input id="pullModel" placeholder="{{PLACEHOLDER_MODEL}}" />
-          <button id="btnPull" class="btn">{{BTN_PULL}}</button>
-        </div>
-      </section>
+      <main class="main" role="main">
+        <section class="panel" id="view-models" data-view>
+          <header class="panel__head">
+            <h2 class="panel__title">{{UI_SECTION_MODELS}}</h2>
+            <div class="panel__actions">
+              <button id="btnList" class="btn" type="button">{{BTN_LIST}}</button>
+            </div>
+          </header>
 
-      <section class="card">
-        <h2>{{SECTION_RUN}}</h2>
-        <div class="grid">
-          <label>
-            <span>{{LABEL_MODEL}}</span>
-            <input id="runModel" placeholder="{{PLACEHOLDER_MODEL}}" />
-          </label>
-          <label>
-            <span>{{LABEL_PROMPT}}</span>
-            <textarea id="prompt" rows="4" placeholder="{{PLACEHOLDER_PROMPT}}"></textarea>
-          </label>
-        </div>
-        <div class="row">
-          <button id="btnRun" class="btn">{{BTN_RUN}}</button>
-        </div>
-      </section>
+          <div class="formrow">
+            <label class="field" for="modelSearch">
+              <span class="field__label">{{UI_LABEL_SEARCH}}</span>
+              <input id="modelSearch" type="search" placeholder="{{UI_PLACEHOLDER_SEARCH}}" autocomplete="off" />
+            </label>
+          </div>
 
-      <section class="card">
-        <h2>{{SECTION_OUTPUT}}</h2>
-        <pre id="out" class="out"></pre>
-      </section>
-    </main>
+          <div class="tablewrap" role="region" aria-label="{{UI_A11Y_MODELS_TABLE}}">
+            <table class="table" aria-describedby="modelsHint">
+              <thead>
+                <tr>
+                  <th>{{UI_TABLE_MODEL}}</th>
+                </tr>
+              </thead>
+              <tbody id="modelsBody">
+                <tr>
+                  <td class="muted" id="modelsHint">{{UI_MODELS_HINT}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
 
-    <script>
-      const token = "{{TOKEN}}";
-      const out = document.getElementById("out");
+        <section class="panel" id="view-run" data-view hidden>
+          <header class="panel__head">
+            <h2 class="panel__title">{{SECTION_RUN}}</h2>
+          </header>
 
-      async function api(path, body) {
-        const res = await fetch(path + "?t=" + encodeURIComponent(token), {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-Token": token },
-          body: JSON.stringify(body || {})
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || ("HTTP " + res.status));
-        return data;
-      }
+          <div class="grid">
+            <label class="field" for="runModel">
+              <span class="field__label">{{LABEL_MODEL}}</span>
+              <input id="runModel" placeholder="{{PLACEHOLDER_MODEL}}" list="modelDatalist" autocomplete="off" />
+            </label>
 
-      function show(data) {
-        let s = "";
-        if (data.error) s += "ERROR: " + data.error + "\n";
-        if (typeof data.exitCode === "number") s += "exitCode: " + data.exitCode + "\n\n";
-        if (data.output) s += data.output;
-        out.textContent = s;
-      }
+            <label class="field field--full" for="prompt">
+              <span class="field__label">{{LABEL_PROMPT}}</span>
+              <textarea id="prompt" rows="6" placeholder="{{PLACEHOLDER_PROMPT}}"></textarea>
+              <span class="field__hint">{{UI_HINT_RUN_SHORTCUT}}</span>
+            </label>
+          </div>
 
-      async function loadConfig() {
-        const res = await fetch("/api/config?t=" + encodeURIComponent(token), {
-          headers: { "X-Token": token }
-        });
-        const data = await res.json();
-        document.getElementById("cfgPath").textContent = data.configPath;
-        document.getElementById("host").value = data.host || "";
-        document.getElementById("lang").value = data.lang || "en";
-      }
+          <div class="panel__foot">
+            <button id="btnRun" class="btn btn--primary" type="button">{{BTN_RUN}}</button>
+          </div>
+        </section>
 
-      document.getElementById("btnList").addEventListener("click", async () => {
-        show(await api("/api/list"));
-      });
-      document.getElementById("btnPull").addEventListener("click", async () => {
-        const model = document.getElementById("pullModel").value;
-        show(await api("/api/pull", { model }));
-      });
-      document.getElementById("btnRun").addEventListener("click", async () => {
-        const model = document.getElementById("runModel").value;
-        const prompt = document.getElementById("prompt").value;
-        show(await api("/api/run", { model, prompt }));
-      });
-      document.getElementById("btnSave").addEventListener("click", async () => {
-        const host = document.getElementById("host").value;
-        const lang = document.getElementById("lang").value;
-        await api("/api/config/set", { host, lang });
-        await loadConfig();
-        out.textContent = "{{MSG_SAVED_RESTART}}";
-      });
+        <section class="panel" id="view-pull" data-view hidden>
+          <header class="panel__head">
+            <h2 class="panel__title">{{SECTION_PULL}}</h2>
+          </header>
 
-      loadConfig();
-    </script>
+          <div class="formrow">
+            <label class="field" for="pullModel">
+              <span class="field__label">{{LABEL_MODEL}}</span>
+              <input id="pullModel" placeholder="{{PLACEHOLDER_MODEL}}" list="modelDatalist" autocomplete="off" />
+              <span class="field__hint">{{UI_HINT_PULL_UNSAFE}}</span>
+            </label>
+          </div>
+
+          <div class="panel__foot">
+            <button id="btnPull" class="btn btn--primary" type="button">{{BTN_PULL}}</button>
+          </div>
+        </section>
+
+        <section class="panel" id="view-settings" data-view hidden>
+          <header class="panel__head">
+            <h2 class="panel__title">{{SECTION_CONFIG}}</h2>
+            <div class="panel__meta">
+              <span class="muted">{{UI_LABEL_CONFIG_PATH}}</span>
+              <span class="mono" id="cfgPath">—</span>
+            </div>
+          </header>
+
+          <div class="grid">
+            <label class="field" for="host">
+              <span class="field__label">{{LABEL_HOST}}</span>
+              <input id="host" placeholder="{{PLACEHOLDER_HOST}}" />
+            </label>
+
+            <label class="field" for="lang">
+              <span class="field__label">{{LABEL_LANG}}</span>
+              <select id="lang">
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="de">Deutsch</option>
+              </select>
+            </label>
+
+            <label class="field" for="mode">
+              <span class="field__label">{{UI_LABEL_MODE}}</span>
+              <select id="mode">
+                <option value="auto">{{UI_MODE_AUTO}}</option>
+                <option value="wrapper">{{UI_MODE_WRAPPER}}</option>
+                <option value="native">{{UI_MODE_NATIVE}}</option>
+              </select>
+              <span class="field__hint">{{UI_HINT_MODE}}</span>
+            </label>
+
+            <label class="field" for="ollamaExe">
+              <span class="field__label">{{UI_LABEL_OLLAMA_EXE}}</span>
+              <input id="ollamaExe" placeholder="{{UI_PLACEHOLDER_OLLAMA_EXE}}" autocomplete="off" />
+            </label>
+
+            <label class="check">
+              <input id="unsafe" type="checkbox" />
+              <span>{{UI_LABEL_UNSAFE}}</span>
+            </label>
+
+            <label class="check">
+              <input id="noProxyAuto" type="checkbox" />
+              <span>{{UI_LABEL_NO_PROXY_AUTO}}</span>
+            </label>
+          </div>
+
+          <div class="panel__foot">
+            <button id="btnSave" class="btn" type="button">{{BTN_SAVE}}</button>
+          </div>
+        </section>
+
+        <datalist id="modelDatalist"></datalist>
+      </main>
+
+      <aside class="output" aria-label="{{SECTION_OUTPUT}}">
+        <header class="output__head">
+          <div class="output__title">{{SECTION_OUTPUT}}</div>
+          <div class="output__actions">
+            <button id="btnWrap" class="btn btn--ghost" type="button" data-label-wrap="{{UI_BTN_WRAP}}" data-label-unwrap="{{UI_BTN_UNWRAP}}">{{UI_BTN_WRAP}}</button>
+            <button id="btnCopy" class="btn btn--ghost" type="button">{{UI_BTN_COPY}}</button>
+            <button id="btnClear" class="btn btn--ghost" type="button">{{UI_BTN_CLEAR}}</button>
+          </div>
+        </header>
+        <pre id="out" class="out" aria-live="polite">{{UI_OUTPUT_EMPTY}}</pre>
+      </aside>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+
+    <script type="module" src="/static/app.js"></script>
   </body>
 </html>

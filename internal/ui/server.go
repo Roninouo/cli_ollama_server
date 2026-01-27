@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"net"
 	"net/http"
 	"os/exec"
@@ -55,7 +56,11 @@ func (s *Server) Start() (string, error) {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", s.handleIndex)
-	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFS))))
+	assets, err := fs.Sub(staticFS, "static")
+	if err != nil {
+		assets = staticFS
+	}
+	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(assets))))
 	mux.HandleFunc("/api/list", s.auth(s.handleList))
 	mux.HandleFunc("/api/pull", s.auth(s.handlePull))
 	mux.HandleFunc("/api/run", s.auth(s.handleRun))
@@ -104,31 +109,78 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	html := string(raw)
-	html = strings.ReplaceAll(html, "{{TOKEN}}", s.token)
-	html = strings.ReplaceAll(html, "{{LANG}}", s.Translator.Lang())
-	html = strings.ReplaceAll(html, "{{TITLE}}", "ollama-remote")
+	tr := s.Translator
 
-	html = strings.ReplaceAll(html, "{{SUBTITLE}}", s.Translator.Sprintf("ui.subtitle"))
-	html = strings.ReplaceAll(html, "{{BTN_LIST}}", s.Translator.Sprintf("ui.btn.list"))
+	repl := map[string]string{
+		"{{TOKEN}}": s.token,
+		"{{LANG}}":  tr.Lang(),
+		"{{TITLE}}": "ollama-remote",
 
-	html = strings.ReplaceAll(html, "{{SECTION_CONFIG}}", s.Translator.Sprintf("ui.section.config"))
-	html = strings.ReplaceAll(html, "{{LABEL_HOST}}", s.Translator.Sprintf("ui.label.host"))
-	html = strings.ReplaceAll(html, "{{LABEL_LANG}}", s.Translator.Sprintf("ui.label.language"))
-	html = strings.ReplaceAll(html, "{{BTN_SAVE}}", s.Translator.Sprintf("ui.btn.save"))
-	html = strings.ReplaceAll(html, "{{PLACEHOLDER_HOST}}", s.Translator.Sprintf("ui.placeholder.host"))
+		"{{SUBTITLE}}": tr.Sprintf("ui.subtitle"),
 
-	html = strings.ReplaceAll(html, "{{SECTION_PULL}}", s.Translator.Sprintf("ui.section.pull"))
-	html = strings.ReplaceAll(html, "{{BTN_PULL}}", s.Translator.Sprintf("ui.btn.pull"))
-	html = strings.ReplaceAll(html, "{{PLACEHOLDER_MODEL}}", s.Translator.Sprintf("ui.placeholder.model"))
+		"{{BTN_LIST}}": tr.Sprintf("ui.btn.list"),
+		"{{BTN_SAVE}}": tr.Sprintf("ui.btn.save"),
+		"{{BTN_PULL}}": tr.Sprintf("ui.btn.pull"),
+		"{{BTN_RUN}}":  tr.Sprintf("ui.btn.run"),
 
-	html = strings.ReplaceAll(html, "{{SECTION_RUN}}", s.Translator.Sprintf("ui.section.run"))
-	html = strings.ReplaceAll(html, "{{LABEL_MODEL}}", s.Translator.Sprintf("ui.label.model"))
-	html = strings.ReplaceAll(html, "{{LABEL_PROMPT}}", s.Translator.Sprintf("ui.label.prompt"))
-	html = strings.ReplaceAll(html, "{{BTN_RUN}}", s.Translator.Sprintf("ui.btn.run"))
-	html = strings.ReplaceAll(html, "{{PLACEHOLDER_PROMPT}}", s.Translator.Sprintf("ui.placeholder.prompt"))
+		"{{SECTION_CONFIG}}":    tr.Sprintf("ui.section.config"),
+		"{{SECTION_PULL}}":      tr.Sprintf("ui.section.pull"),
+		"{{SECTION_RUN}}":       tr.Sprintf("ui.section.run"),
+		"{{SECTION_OUTPUT}}":    tr.Sprintf("ui.section.output"),
+		"{{UI_SECTION_MODELS}}": tr.Sprintf("ui.section.models"),
 
-	html = strings.ReplaceAll(html, "{{SECTION_OUTPUT}}", s.Translator.Sprintf("ui.section.output"))
-	html = strings.ReplaceAll(html, "{{MSG_SAVED_RESTART}}", s.Translator.Sprintf("ui.message.saved_restart"))
+		"{{LABEL_HOST}}":   tr.Sprintf("ui.label.host"),
+		"{{LABEL_LANG}}":   tr.Sprintf("ui.label.language"),
+		"{{LABEL_MODEL}}":  tr.Sprintf("ui.label.model"),
+		"{{LABEL_PROMPT}}": tr.Sprintf("ui.label.prompt"),
+
+		"{{PLACEHOLDER_HOST}}":   tr.Sprintf("ui.placeholder.host"),
+		"{{PLACEHOLDER_MODEL}}":  tr.Sprintf("ui.placeholder.model"),
+		"{{PLACEHOLDER_PROMPT}}": tr.Sprintf("ui.placeholder.prompt"),
+
+		"{{MSG_SAVED_RESTART}}": tr.Sprintf("ui.message.saved_restart"),
+
+		"{{UI_NAV_MODELS}}":   tr.Sprintf("ui.nav.models"),
+		"{{UI_NAV_RUN}}":      tr.Sprintf("ui.nav.run"),
+		"{{UI_NAV_PULL}}":     tr.Sprintf("ui.nav.pull"),
+		"{{UI_NAV_SETTINGS}}": tr.Sprintf("ui.nav.settings"),
+
+		"{{UI_LABEL_SEARCH}}":           tr.Sprintf("ui.label.search"),
+		"{{UI_PLACEHOLDER_SEARCH}}":     tr.Sprintf("ui.placeholder.search"),
+		"{{UI_TABLE_MODEL}}":            tr.Sprintf("ui.table.model"),
+		"{{UI_MODELS_HINT}}":            tr.Sprintf("ui.models.hint"),
+		"{{UI_HINT_RUN_SHORTCUT}}":      tr.Sprintf("ui.hint.run_shortcut"),
+		"{{UI_HINT_PULL_UNSAFE}}":       tr.Sprintf("ui.hint.pull_unsafe"),
+		"{{UI_LABEL_CONFIG_PATH}}":      tr.Sprintf("ui.label.config_path"),
+		"{{UI_LABEL_MODE}}":             tr.Sprintf("ui.label.mode"),
+		"{{UI_MODE_AUTO}}":              tr.Sprintf("ui.mode.auto"),
+		"{{UI_MODE_WRAPPER}}":           tr.Sprintf("ui.mode.wrapper"),
+		"{{UI_MODE_NATIVE}}":            tr.Sprintf("ui.mode.native"),
+		"{{UI_HINT_MODE}}":              tr.Sprintf("ui.hint.mode"),
+		"{{UI_LABEL_OLLAMA_EXE}}":       tr.Sprintf("ui.label.ollama_exe"),
+		"{{UI_PLACEHOLDER_OLLAMA_EXE}}": tr.Sprintf("ui.placeholder.ollama_exe"),
+		"{{UI_LABEL_UNSAFE}}":           tr.Sprintf("ui.label.unsafe"),
+		"{{UI_LABEL_NO_PROXY_AUTO}}":    tr.Sprintf("ui.label.no_proxy_auto"),
+
+		"{{UI_BTN_WRAP}}":     tr.Sprintf("ui.btn.wrap"),
+		"{{UI_BTN_UNWRAP}}":   tr.Sprintf("ui.btn.unwrap"),
+		"{{UI_BTN_COPY}}":     tr.Sprintf("ui.btn.copy"),
+		"{{UI_BTN_CLEAR}}":    tr.Sprintf("ui.btn.clear"),
+		"{{UI_OUTPUT_EMPTY}}": tr.Sprintf("ui.output.empty"),
+
+		"{{UI_MSG_COPIED}}":  tr.Sprintf("ui.message.copied"),
+		"{{UI_MSG_LOADING}}": tr.Sprintf("ui.message.loading"),
+		"{{UI_MSG_WORKING}}": tr.Sprintf("ui.message.working"),
+
+		"{{UI_BTN_THEME}}":         tr.Sprintf("ui.btn.theme"),
+		"{{UI_A11Y_NAV}}":          tr.Sprintf("ui.a11y.nav"),
+		"{{UI_A11Y_STATUS}}":       tr.Sprintf("ui.a11y.status"),
+		"{{UI_A11Y_MODELS_TABLE}}": tr.Sprintf("ui.a11y.models_table"),
+	}
+
+	for k, v := range repl {
+		html = strings.ReplaceAll(html, k, v)
+	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	io.WriteString(w, html)
 }
@@ -175,10 +227,24 @@ func (s *Server) handleRun(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleConfig(w http.ResponseWriter, r *http.Request) {
+	selected := s.Effective.Mode
+	if selected == "auto" {
+		if _, err := execollama.ResolveExecutable(s.Effective.OllamaExe); err == nil {
+			selected = "wrapper"
+		} else {
+			selected = "native"
+		}
+	}
+
 	resp := map[string]any{
-		"configPath": s.ConfigPath,
-		"host":       s.Effective.Host,
-		"lang":       s.Translator.Lang(),
+		"configPath":   s.ConfigPath,
+		"host":         s.Effective.Host,
+		"lang":         s.Translator.Lang(),
+		"mode":         s.Effective.Mode,
+		"unsafe":       s.Effective.Unsafe,
+		"noProxyAuto":  s.Effective.NoProxyAuto,
+		"ollamaExe":    s.Effective.OllamaExe,
+		"selectedMode": selected,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
@@ -186,26 +252,88 @@ func (s *Server) handleConfig(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleConfigSet(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		Host string `json:"host"`
-		Lang string `json:"lang"`
+		Host        *string `json:"host"`
+		Lang        *string `json:"lang"`
+		Mode        *string `json:"mode"`
+		OllamaExe   *string `json:"ollamaExe"`
+		Unsafe      *bool   `json:"unsafe"`
+		NoProxyAuto *bool   `json:"noProxyAuto"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		respondErr(w, http.StatusBadRequest, s.Translator.Sprintf("ui.error.bad_request"))
 		return
 	}
-	if strings.TrimSpace(req.Host) != "" {
-		if err := config.SetUserConfig(s.ConfigPath, "host", strings.TrimSpace(req.Host)); err != nil {
+	if req.Host != nil {
+		v := strings.TrimSpace(*req.Host)
+		if v == "" {
+			v = "http://127.0.0.1:11434"
+		}
+		if _, herr := config.ParseHostURL(v); herr != nil {
+			respondErr(w, http.StatusBadRequest, s.Translator.Sprintf("error.invalid_host", "host", v, "error", herr.Error()))
+			return
+		}
+		if err := config.SetUserConfig(s.ConfigPath, "host", v); err != nil {
 			respondErr(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		s.Effective.Host = strings.TrimSpace(req.Host)
+		s.Effective.Host = v
 	}
-	if strings.TrimSpace(req.Lang) != "" {
-		if err := config.SetUserConfig(s.ConfigPath, "lang", strings.TrimSpace(req.Lang)); err != nil {
+	if req.Lang != nil {
+		v := strings.TrimSpace(*req.Lang)
+		if v != "" {
+			if err := config.SetUserConfig(s.ConfigPath, "lang", v); err != nil {
+				respondErr(w, http.StatusBadRequest, err.Error())
+				return
+			}
+			s.Translator = i18n.New(v)
+		}
+	}
+	if req.Mode != nil {
+		v := strings.TrimSpace(*req.Mode)
+		if v == "" {
+			v = "auto"
+		}
+		if m, merr := config.NormalizeMode(v); merr != nil {
+			respondErr(w, http.StatusBadRequest, s.Translator.Sprintf("error.invalid_mode", "mode", v))
+			return
+		} else {
+			v = m
+		}
+		if err := config.SetUserConfig(s.ConfigPath, "mode", v); err != nil {
 			respondErr(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		s.Translator = i18n.New(strings.TrimSpace(req.Lang))
+		s.Effective.Mode = v
+	}
+	if req.OllamaExe != nil {
+		v := strings.TrimSpace(*req.OllamaExe)
+		if err := config.SetUserConfig(s.ConfigPath, "ollama_exe", v); err != nil {
+			respondErr(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		s.Effective.OllamaExe = v
+	}
+	if req.Unsafe != nil {
+		v := "false"
+		if *req.Unsafe {
+			v = "true"
+		}
+		if err := config.SetUserConfig(s.ConfigPath, "unsafe", v); err != nil {
+			respondErr(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		s.Effective.Unsafe = *req.Unsafe
+	}
+	if req.NoProxyAuto != nil {
+		v := "false"
+		if *req.NoProxyAuto {
+			v = "true"
+		}
+		if err := config.SetUserConfig(s.ConfigPath, "no_proxy_auto", v); err != nil {
+			respondErr(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		s.Effective.NoProxyAuto = *req.NoProxyAuto
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]any{"ok": true})
