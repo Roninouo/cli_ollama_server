@@ -52,9 +52,16 @@ func mergeEnvIntoConfig(base Config, env map[string]string) Config {
 	if v := strings.TrimSpace(env["OLLAMA_REMOTE_LANG"]); v != "" {
 		base.Lang = v
 	}
+	if v := strings.TrimSpace(env["OLLAMA_REMOTE_MODE"]); v != "" {
+		base.Mode = v
+	}
 	if v := strings.TrimSpace(env["OLLAMA_REMOTE_NO_PROXY_AUTO"]); v != "" {
 		b := (v == "1" || strings.EqualFold(v, "true") || strings.EqualFold(v, "yes"))
 		base.NoProxyAuto = &b
+	}
+	if v := strings.TrimSpace(env["OLLAMA_REMOTE_UNSAFE"]); v != "" {
+		b := (v == "1" || strings.EqualFold(v, "true") || strings.EqualFold(v, "yes"))
+		base.Unsafe = &b
 	}
 	return base
 }

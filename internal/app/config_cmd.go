@@ -35,7 +35,13 @@ func runConfig(tr *i18n.Bundle, loaded config.Config, meta config.LoadMeta, args
 		} else {
 			fmt.Println(tr.Sprintf("config.ollama_exe", "value", eff.OllamaExe))
 		}
+		modeVal := eff.Mode
+		if strings.TrimSpace(modeVal) == "" {
+			modeVal = "auto"
+		}
+		fmt.Println(tr.Sprintf("config.mode", "value", modeVal))
 		fmt.Println(tr.Sprintf("config.no_proxy_auto", "value", fmtBool(eff.NoProxyAuto)))
+		fmt.Println(tr.Sprintf("config.unsafe", "value", fmtBool(eff.Unsafe)))
 		return 0
 	case "init":
 		if err := config.InitUserConfig(meta.PrimaryPath); err != nil {

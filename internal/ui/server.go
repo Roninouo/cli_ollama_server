@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"context"
 	"crypto/rand"
 	"embed"
 	"encoding/hex"
@@ -18,6 +19,7 @@ import (
 	"cli_ollama_server/internal/config"
 	"cli_ollama_server/internal/execollama"
 	"cli_ollama_server/internal/i18n"
+	"cli_ollama_server/internal/ollamarunner"
 )
 
 //go:embed static/*
@@ -167,7 +169,8 @@ func (s *Server) handleRun(w http.ResponseWriter, r *http.Request) {
 		respondErr(w, http.StatusBadRequest, s.Translator.Sprintf("ui.error.model_required"))
 		return
 	}
-	out, code, err := s.runOllama([]string{"run", req.Model, req.Prompt})
+	// Use "--" to ensure prompts that start with '-' are not treated as flags by the wrapper CLI.
+	out, code, err := s.runOllama([]string{"run", req.Model, "--", req.Prompt})
 	respondExec(w, out, code, err)
 }
 
@@ -211,12 +214,18 @@ func (s *Server) handleConfigSet(w http.ResponseWriter, r *http.Request) {
 func (s *Server) runOllama(args []string) (string, int, error) {
 	env, _, _ := config.BuildChildEnv(config.ChildEnvOptions{Existing: s.BaseEnv, Effective: s.Effective})
 	var b strings.Builder
-	code, err := execollama.Run(execollama.RunOptions{
-		Args:      args,
-		Env:       env,
-		OllamaExe: s.Effective.OllamaExe,
-		Stdout:    &b,
-		Stderr:    &b,
+	code, err := ollamarunner.Run(context.Background(), ollamarunner.Options{
+		Mode:        s.Effective.Mode,
+		Host:        s.Effective.Host,
+		OllamaExe:   s.Effective.OllamaExe,
+		NoProxyAuto: s.Effective.NoProxyAuto,
+		Unsafe:      s.Effective.Unsafe,
+		Env:         env,
+		Args:        args,
+		Stdout:      &b,
+		Stderr:      &b,
+		Stdin:       strings.NewReader(""),
+		Translator:  s.Translator,
 	})
 	if err != nil && errors.Is(err, execollama.ErrNotFound) {
 		return b.String(), code, execollama.ErrNotFound

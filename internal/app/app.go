@@ -9,12 +9,15 @@ import (
 	"cli_ollama_server/internal/config"
 	"cli_ollama_server/internal/execollama"
 	"cli_ollama_server/internal/i18n"
+	"cli_ollama_server/internal/ollamarunner"
 )
 
 type globalOpts struct {
 	Host      string
 	Lang      string
 	OllamaExe string
+	Mode      string
+	Unsafe    *bool
 	Config    string
 	Help      bool
 	Version   bool
@@ -105,8 +108,27 @@ func Run(args []string) int {
 		GlobalHostFlag:      opts.Host,
 		GlobalLangFlag:      opts.Lang,
 		GlobalOllamaExeFlag: opts.OllamaExe,
+		GlobalModeFlag:      opts.Mode,
+		GlobalUnsafeFlag:    opts.Unsafe,
 		LoadedConfig:        cfg,
 	})
+
+	if m, merr := config.NormalizeMode(eff.Mode); merr != nil {
+		fmt.Fprintln(os.Stderr, tr.Sprintf("error.invalid_mode", "mode", eff.Mode))
+		return 2
+	} else {
+		eff.Mode = m
+	}
+	if _, herr := config.ParseHostURL(eff.Host); herr != nil {
+		fmt.Fprintln(os.Stderr, tr.Sprintf("error.invalid_host", "host", eff.Host, "error", herr.Error()))
+		return 2
+	}
+	if eff.Mode != "native" && strings.TrimSpace(eff.OllamaExe) != "" {
+		if _, err := execollama.ResolveExecutable(eff.OllamaExe); err != nil {
+			fmt.Fprintln(os.Stderr, tr.Sprintf("error.invalid_ollama_exe", "path", eff.OllamaExe))
+			return 2
+		}
+	}
 
 	env, envMeta, envErr := config.BuildChildEnv(config.ChildEnvOptions{
 		Existing:      os.Environ(),
@@ -119,13 +141,18 @@ func Run(args []string) int {
 		return 2
 	}
 
-	code, runErr := execollama.Run(execollama.RunOptions{
-		Args:      rest,
-		Env:       env,
-		OllamaExe: eff.OllamaExe,
-		Stdout:    os.Stdout,
-		Stderr:    os.Stderr,
-		Stdin:     os.Stdin,
+	code, runErr := ollamarunner.Run(nil, ollamarunner.Options{
+		Mode:        eff.Mode,
+		Host:        eff.Host,
+		OllamaExe:   eff.OllamaExe,
+		NoProxyAuto: eff.NoProxyAuto,
+		Unsafe:      eff.Unsafe,
+		Env:         env,
+		Args:        rest,
+		Stdout:      os.Stdout,
+		Stderr:      os.Stderr,
+		Stdin:       os.Stdin,
+		Translator:  tr,
 	})
 	if runErr != nil {
 		if errors.Is(runErr, execollama.ErrNotFound) {
@@ -185,6 +212,24 @@ func parseGlobal(args []string) (globalOpts, []string, error) {
 			i++
 		case strings.HasPrefix(a, "--ollama-exe="):
 			out.OllamaExe = strings.TrimPrefix(a, "--ollama-exe=")
+		case a == "--mode":
+			if i+1 >= len(args) {
+				return out, nil, &argError{Kind: "missing_value", Flag: "--mode"}
+			}
+			out.Mode = args[i+1]
+			i++
+		case strings.HasPrefix(a, "--mode="):
+			out.Mode = strings.TrimPrefix(a, "--mode=")
+		case a == "--unsafe":
+			b := true
+			out.Unsafe = &b
+		case strings.HasPrefix(a, "--unsafe="):
+			v := strings.TrimPrefix(a, "--unsafe=")
+			b := (v == "1" || strings.EqualFold(v, "true") || strings.EqualFold(v, "yes") || strings.EqualFold(v, "y"))
+			if v == "0" || strings.EqualFold(v, "false") || strings.EqualFold(v, "no") || strings.EqualFold(v, "n") {
+				b = false
+			}
+			out.Unsafe = &b
 		case a == "--config":
 			if i+1 >= len(args) {
 				return out, nil, &argError{Kind: "missing_value", Flag: "--config"}
@@ -209,6 +254,8 @@ func printHelp(tr *i18n.Bundle) {
 	fmt.Println(tr.Sprintf("help.flag.host"))
 	fmt.Println(tr.Sprintf("help.flag.lang"))
 	fmt.Println(tr.Sprintf("help.flag.ollama_exe"))
+	fmt.Println(tr.Sprintf("help.flag.mode"))
+	fmt.Println(tr.Sprintf("help.flag.unsafe"))
 	fmt.Println(tr.Sprintf("help.flag.config"))
 	fmt.Println(tr.Sprintf("help.flag.help"))
 	fmt.Println(tr.Sprintf("help.flag.version"))

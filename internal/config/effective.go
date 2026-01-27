@@ -10,19 +10,25 @@ type Effective struct {
 	Host        string
 	Lang        string
 	OllamaExe   string
+	Mode        string
 	NoProxyAuto bool
+	Unsafe      bool
 }
 
 type EffectiveMeta struct {
 	HostSource      string
 	LangSource      string
 	OllamaExeSource string
+	ModeSource      string
+	UnsafeSource    string
 }
 
 type EffectiveOptions struct {
 	GlobalHostFlag      string
 	GlobalLangFlag      string
 	GlobalOllamaExeFlag string
+	GlobalModeFlag      string
+	GlobalUnsafeFlag    *bool
 	LoadedConfig        Config
 }
 
@@ -72,10 +78,43 @@ func ResolveEffective(opts EffectiveOptions) (Effective, EffectiveMeta) {
 		meta.OllamaExeSource = "auto"
 	}
 
+	if strings.TrimSpace(opts.GlobalModeFlag) != "" {
+		out.Mode = strings.TrimSpace(opts.GlobalModeFlag)
+		meta.ModeSource = "flag"
+	} else if v := strings.TrimSpace(os.Getenv("OLLAMA_REMOTE_MODE")); v != "" {
+		out.Mode = v
+		meta.ModeSource = "env"
+	} else if strings.TrimSpace(opts.LoadedConfig.Mode) != "" {
+		out.Mode = strings.TrimSpace(opts.LoadedConfig.Mode)
+		meta.ModeSource = "config"
+	} else {
+		out.Mode = "auto"
+		meta.ModeSource = "default"
+	}
+
 	if opts.LoadedConfig.NoProxyAuto != nil {
 		out.NoProxyAuto = *opts.LoadedConfig.NoProxyAuto
 	}
+
+	if opts.GlobalUnsafeFlag != nil {
+		out.Unsafe = *opts.GlobalUnsafeFlag
+		meta.UnsafeSource = "flag"
+	} else if v := strings.TrimSpace(os.Getenv("OLLAMA_REMOTE_UNSAFE")); v != "" {
+		out.Unsafe = parseBool(v)
+		meta.UnsafeSource = "env"
+	} else if opts.LoadedConfig.Unsafe != nil {
+		out.Unsafe = *opts.LoadedConfig.Unsafe
+		meta.UnsafeSource = "config"
+	} else {
+		out.Unsafe = false
+		meta.UnsafeSource = "default"
+	}
 	return out, meta
+}
+
+func parseBool(v string) bool {
+	v = strings.TrimSpace(v)
+	return v == "1" || strings.EqualFold(v, "true") || strings.EqualFold(v, "yes") || strings.EqualFold(v, "y")
 }
 
 type ChildEnvOptions struct {

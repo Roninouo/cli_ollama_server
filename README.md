@@ -1,12 +1,18 @@
 # cli_ollama_server (ollama-remote)
 
-`ollama-remote` is a small, production-friendly wrapper around the official `ollama` CLI.
+`ollama-remote` is a small, production-friendly CLI that targets a remote Ollama server.
+
+It uses a hybrid execution model:
+
+- Wrapper mode (preferred): uses the official `ollama` CLI when available
+- Native mode (fallback): talks directly to the Ollama REST API when `ollama` is not available
 
 It resolves configuration (`host`, `lang`, `ollama_exe`) and runs `ollama` with your arguments.
 
 ## What this tool does
 
 - Runs the upstream `ollama` CLI with a resolved `OLLAMA_HOST`
+- Falls back to a minimal built-in REST client for common commands when `ollama` is not present
 - Provides config management, basic diagnostics, and an optional local web UI
 - Propagates exit codes (CI-friendly)
 
@@ -57,6 +63,7 @@ chmod +x ./install.sh ./ollama-remote
 - `docs/installation.md`
 - `docs/configuration.md`
 - `docs/commands.md`
+- `docs/hybrid.md`
 - `docs/i18n.md`
 - `docs/ui.md`
 - `docs/troubleshooting.md`

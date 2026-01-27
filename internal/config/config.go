@@ -14,7 +14,9 @@ type Config struct {
 	Host        string `toml:"host"`
 	Lang        string `toml:"lang"`
 	OllamaExe   string `toml:"ollama_exe"`
+	Mode        string `toml:"mode"`
 	NoProxyAuto *bool  `toml:"no_proxy_auto"`
+	Unsafe      *bool  `toml:"unsafe"`
 }
 
 type LoadOptions struct {
@@ -131,8 +133,14 @@ func mergeConfig(base, override Config) Config {
 	if strings.TrimSpace(override.OllamaExe) != "" {
 		base.OllamaExe = override.OllamaExe
 	}
+	if strings.TrimSpace(override.Mode) != "" {
+		base.Mode = override.Mode
+	}
 	if override.NoProxyAuto != nil {
 		base.NoProxyAuto = override.NoProxyAuto
+	}
+	if override.Unsafe != nil {
+		base.Unsafe = override.Unsafe
 	}
 	return base
 }

@@ -20,11 +20,14 @@ func InitUserConfig(path string) error {
 		return err
 	}
 	b0 := false
+	b1 := false
 	c := Config{
 		Host:        "http://127.0.0.1:11434",
 		Lang:        "",
 		OllamaExe:   "",
+		Mode:        "auto",
 		NoProxyAuto: &b0,
+		Unsafe:      &b1,
 	}
 	b, err := toml.Marshal(c)
 	if err != nil {
@@ -54,10 +57,16 @@ func SetUserConfig(path, key, val string) error {
 		c.Lang = val
 	case "ollama_exe":
 		c.OllamaExe = val
+	case "mode":
+		c.Mode = val
 	case "no_proxy_auto":
 		v := strings.TrimSpace(val)
 		b := (v == "1" || strings.EqualFold(v, "true") || strings.EqualFold(v, "yes"))
 		c.NoProxyAuto = &b
+	case "unsafe":
+		v := strings.TrimSpace(val)
+		b := (v == "1" || strings.EqualFold(v, "true") || strings.EqualFold(v, "yes"))
+		c.Unsafe = &b
 	default:
 		return &UnknownKeyError{Key: key}
 	}

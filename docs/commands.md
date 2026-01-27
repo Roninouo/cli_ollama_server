@@ -1,9 +1,11 @@
 # Commands
 
-`ollama-remote` supports two modes:
+`ollama-remote` supports a hybrid execution model:
 
-1) Wrapper commands implemented by this tool
-2) Passthrough mode: any unknown command/args are forwarded to the official `ollama` CLI
+1) Wrapper mode: uses the official `ollama` CLI when available
+2) Native mode: falls back to the Ollama REST API when the `ollama` CLI is not available
+
+See: `docs/hybrid.md`
 
 ## Wrapper commands
 
@@ -33,4 +35,11 @@ ollama-remote list
 ollama-remote ps
 ollama-remote run llama3:8b
 ollama-remote --host https://ollama.example.com:11434 pull llama3:8b
+ollama-remote --mode native list
+ollama-remote --mode native --unsafe pull llama3:8b
 ```
+
+Notes:
+
+- In wrapper mode, unknown commands/flags are forwarded to `ollama`.
+- In native mode, only a documented subset of commands is supported (unsupported commands fail fast).

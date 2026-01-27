@@ -15,6 +15,8 @@ func runUI(tr *i18n.Bundle, loaded config.Config, meta config.LoadMeta, opts glo
 		GlobalHostFlag:      opts.Host,
 		GlobalLangFlag:      opts.Lang,
 		GlobalOllamaExeFlag: opts.OllamaExe,
+		GlobalModeFlag:      opts.Mode,
+		GlobalUnsafeFlag:    opts.Unsafe,
 		LoadedConfig:        loaded,
 	})
 
