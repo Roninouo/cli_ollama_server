@@ -1,0 +1,8 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+
+# Local artifacts
+dist/
+*.zip
+*.sha256

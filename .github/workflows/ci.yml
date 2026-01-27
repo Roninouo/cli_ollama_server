@@ -1,0 +1,35 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: PowerShell lint
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          Install-Module PSScriptAnalyzer -Scope CurrentUser -Force
+          Invoke-ScriptAnalyzer -Path . -Recurse -Severity Warning -ErrorAction Stop
+
+      - name: Wrapper help (Batch)
+        shell: cmd
+        run: |
+          call .\ollama-remote.bat --help
+
+      - name: Wrapper help (PowerShell)
+        shell: pwsh
+        run: |
+          .\ollama-remote.ps1 --help
+
+      - name: Install/Uninstall dry run
+        shell: pwsh
+        run: |
+          .\install.ps1 -DryRun
+          .\uninstall.ps1 -DryRun

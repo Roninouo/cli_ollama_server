@@ -1,0 +1,47 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build zip + checksum
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $tag = '${{ github.ref_name }}'
+          $dist = Join-Path $PWD 'dist'
+          New-Item -ItemType Directory -Force -Path $dist | Out-Null
+
+          $zipName = "cli_ollama_server_${tag}.zip"
+          $zipPath = Join-Path $dist $zipName
+          if (Test-Path $zipPath) { Remove-Item -Force $zipPath }
+
+          $files = @(
+            'ollama-remote.bat',
+            'ollama-remote.ps1',
+            'install.ps1',
+            'uninstall.ps1',
+            'README.md',
+            'LICENSE'
+          )
+
+          Compress-Archive -Path $files -DestinationPath $zipPath -Force
+          (Get-FileHash -Algorithm SHA256 -Path $zipPath).Hash | Out-File -Encoding ascii -NoNewline ("$zipPath.sha256")
+
+      - name: GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.zip
+            dist/*.sha256
