@@ -61,7 +61,14 @@ function setBusy(busy) {
   busyCount += busy ? 1 : -1;
   if (busyCount < 0) busyCount = 0;
   const on = busyCount > 0;
-  for (const b of [btnList, btnRun, btnPull, btnSave]) b.disabled = on;
+  for (const b of [btnList, btnRun, btnPull, btnSave]) {
+    b.disabled = on;
+    if (on) {
+      b.classList.add('is-loading');
+    } else {
+      b.classList.remove('is-loading');
+    }
+  }
 }
 async function apiPost(path, body = {}) {
   const res = await fetch(`${path}?t=${encodeURIComponent(token)}`, {

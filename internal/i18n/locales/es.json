@@ -135,11 +135,18 @@
   "error.ollama_failed": "Ollama fallo: {error}",
   "error.ui_listen": "No se pudo escuchar: {error}",
   "error.ui_start": "No se pudo iniciar la UI: {error}",
+  "error.ui_shutdown": "No se pudo cerrar la UI correctamente: {error}",
 
   "error.native.usage_run": "Uso (nativo): ollama-remote run <modelo> [--] <prompt> (o envia el prompt por stdin)",
   "error.native.run_requires_prompt": "El modo nativo requiere un prompt explicito (arg o stdin). El modo interactivo requiere wrapper.",
   "error.native.usage_pull": "Uso (nativo): ollama-remote pull <modelo>",
   "error.native.pull_requires_unsafe": "pull en modo nativo esta deshabilitado por defecto. Reintenta con --unsafe (o unsafe=true).",
   "error.native.usage_show": "Uso (nativo): ollama-remote show <modelo>",
-  "error.native.unsupported": "No soportado en modo nativo: {cmd} (instala el CLI de Ollama o usa --mode=wrapper)"
+  "error.native.usage_delete": "Uso (nativo): ollama-remote rm <modelo>",
+  "error.native.delete_requires_unsafe": "delete en modo nativo esta deshabilitado por defecto. Reintenta con --unsafe (o unsafe=true).",
+  "error.native.usage_copy": "Uso (nativo): ollama-remote cp <origen> <destino>",
+  "error.native.unsupported": "No soportado en modo nativo: {cmd} (instala el CLI de Ollama o usa --mode=wrapper)",
+
+  "native.deleted": "Modelo eliminado: {model}",
+  "native.copied": "Copiado {source} a {destination}"
 }

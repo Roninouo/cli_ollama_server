@@ -158,6 +158,30 @@ func runNative(ctx context.Context, opts Options) (int, error) {
 			return 1, err
 		}
 		return 0, nil
+	case "rm", "delete":
+		if len(opts.Args) < 2 {
+			return 2, errors.New(tr.Sprintf("error.native.usage_delete"))
+		}
+		if !opts.Unsafe {
+			return 2, errors.New(tr.Sprintf("error.native.delete_requires_unsafe"))
+		}
+		modelName := strings.TrimSpace(opts.Args[1])
+		if err := client.Delete(ctx, modelName); err != nil {
+			return 1, err
+		}
+		fmt.Fprintln(opts.Stdout, tr.Sprintf("native.deleted", "model", modelName))
+		return 0, nil
+	case "cp", "copy":
+		if len(opts.Args) < 3 {
+			return 2, errors.New(tr.Sprintf("error.native.usage_copy"))
+		}
+		source := strings.TrimSpace(opts.Args[1])
+		destination := strings.TrimSpace(opts.Args[2])
+		if err := client.Copy(ctx, source, destination); err != nil {
+			return 1, err
+		}
+		fmt.Fprintln(opts.Stdout, tr.Sprintf("native.copied", "source", source, "destination", destination))
+		return 0, nil
 	default:
 		return 2, fmt.Errorf(tr.Sprintf("error.native.unsupported", "cmd", cmd))
 	}

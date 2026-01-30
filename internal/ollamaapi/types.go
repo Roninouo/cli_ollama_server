@@ -59,3 +59,14 @@ type PullChunk struct {
 	Completed int64  `json:"completed"`
 	Error     string `json:"error"`
 }
+
+// DeleteRequest represents a request to delete a model.
+type DeleteRequest struct {
+	Name string `json:"name"`
+}
+
+// CopyRequest represents a request to copy a model.
+type CopyRequest struct {
+	Source      string `json:"source"`
+	Destination string `json:"destination"`
+}

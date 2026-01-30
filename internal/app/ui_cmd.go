@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"cli_ollama_server/internal/config"
 	"cli_ollama_server/internal/i18n"
@@ -46,5 +48,25 @@ func runUI(tr *i18n.Bundle, loaded config.Config, meta config.LoadMeta, opts glo
 
 	fmt.Println(tr.Sprintf("ui.started", "url", url))
 	fmt.Println(tr.Sprintf("ui.stop_hint"))
-	return srv.Wait()
+
+	// Set up signal handling for graceful shutdown.
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
+
+	// Wait for either server error or shutdown signal.
+	done := make(chan int, 1)
+	go func() {
+		done <- srv.Wait()
+	}()
+
+	select {
+	case <-sigCh:
+		fmt.Println() // Newline after ^C
+		if err := srv.Shutdown(); err != nil {
+			fmt.Fprintln(os.Stderr, tr.Sprintf("error.ui_shutdown", "error", err.Error()))
+		}
+		return 0
+	case code := <-done:
+		return code
+	}
 }

@@ -17,7 +17,11 @@
 
     <header class="top">
       <div class="brand" role="banner">
-        <div class="brand__mark" aria-hidden="true">o</div>
+        <div class="brand__mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5.5-2.5l7.51-3.49L17.5 6.5 9.99 9.99 6.5 17.5zm5.5-6.6c.61 0 1.1.49 1.1 1.1s-.49 1.1-1.1 1.1-1.1-.49-1.1-1.1.49-1.1 1.1-1.1z"/>
+          </svg>
+        </div>
         <div class="brand__text">
           <div class="brand__title">ollama-remote</div>
           <div class="brand__sub">{{SUBTITLE}}</div>
@@ -30,7 +34,7 @@
           <span class="chip" id="chipMode">—</span>
         </div>
         <button id="btnTheme" class="iconbtn" type="button" aria-label="{{UI_BTN_THEME}}" title="{{UI_BTN_THEME}}">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="icon-sun">
             <path d="M12 18a6 6 0 1 0 0-12a6 6 0 0 0 0 12Zm0-16a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1Zm0 18a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0v-1a1 1 0 0 1 1-1Zm10-9a1 1 0 0 1-1 1h-1a1 1 0 1 1 0-2h1a1 1 0 0 1 1 1ZM5 12a1 1 0 0 1-1 1H3a1 1 0 1 1 0-2h1a1 1 0 0 1 1 1Zm14.07 7.07a1 1 0 0 1 0 1.41l-.7.7a1 1 0 1 1-1.41-1.41l.7-.7a1 1 0 0 1 1.41 0ZM7.45 5.86a1 1 0 0 1 0 1.41l-.7.7A1 1 0 1 1 5.34 6.56l.7-.7a1 1 0 0 1 1.41 0Zm11.62-0.52a1 1 0 0 1 0 1.41l-.7.7a1 1 0 0 1-1.41-1.41l.7-.7a1 1 0 0 1 1.41 0ZM7.45 18.14a1 1 0 0 1 0 1.41l-.7.7a1 1 0 1 1-1.41-1.41l.7-.7a1 1 0 0 1 1.41 0Z" />
           </svg>
         </button>
@@ -40,18 +44,30 @@
     <div class="shell">
       <nav class="nav" aria-label="{{UI_A11Y_NAV}}">
         <button class="nav__item" type="button" data-route="models" aria-current="page">
+          <span class="nav__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+          </span>
           <span class="nav__dot" aria-hidden="true"></span>
           <span class="nav__label">{{UI_NAV_MODELS}}</span>
         </button>
         <button class="nav__item" type="button" data-route="run">
+          <span class="nav__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </span>
           <span class="nav__dot" aria-hidden="true"></span>
           <span class="nav__label">{{UI_NAV_RUN}}</span>
         </button>
         <button class="nav__item" type="button" data-route="pull">
+          <span class="nav__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+          </span>
           <span class="nav__dot" aria-hidden="true"></span>
           <span class="nav__label">{{UI_NAV_PULL}}</span>
         </button>
         <button class="nav__item" type="button" data-route="settings">
+          <span class="nav__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+          </span>
           <span class="nav__dot" aria-hidden="true"></span>
           <span class="nav__label">{{UI_NAV_SETTINGS}}</span>
         </button>
@@ -60,9 +76,17 @@
       <main class="main" role="main">
         <section class="panel" id="view-models" data-view>
           <header class="panel__head">
-            <h2 class="panel__title">{{UI_SECTION_MODELS}}</h2>
+            <h2 class="panel__title">
+              <span class="panel__title-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+              </span>
+              {{UI_SECTION_MODELS}}
+            </h2>
             <div class="panel__actions">
-              <button id="btnList" class="btn" type="button">{{BTN_LIST}}</button>
+              <button id="btnList" class="btn btn--primary" type="button">
+                <span class="spinner"></span>
+                {{BTN_LIST}}
+              </button>
             </div>
           </header>
 
@@ -95,7 +119,12 @@
 
         <section class="panel" id="view-run" data-view hidden>
           <header class="panel__head">
-            <h2 class="panel__title">{{SECTION_RUN}}</h2>
+            <h2 class="panel__title">
+              <span class="panel__title-icon">
+                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              </span>
+              {{SECTION_RUN}}
+            </h2>
           </header>
 
           <div class="grid">
@@ -112,13 +141,21 @@
           </div>
 
           <div class="panel__foot">
-            <button id="btnRun" class="btn btn--primary" type="button">{{BTN_RUN}}</button>
+            <button id="btnRun" class="btn btn--primary" type="button">
+              <span class="spinner"></span>
+              {{BTN_RUN}}
+            </button>
           </div>
         </section>
 
         <section class="panel" id="view-pull" data-view hidden>
           <header class="panel__head">
-            <h2 class="panel__title">{{SECTION_PULL}}</h2>
+            <h2 class="panel__title">
+              <span class="panel__title-icon">
+                <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+              </span>
+              {{SECTION_PULL}}
+            </h2>
           </header>
 
           <div class="formrow">
@@ -130,13 +167,21 @@
           </div>
 
           <div class="panel__foot">
-            <button id="btnPull" class="btn btn--primary" type="button">{{BTN_PULL}}</button>
+            <button id="btnPull" class="btn btn--primary" type="button">
+              <span class="spinner"></span>
+              {{BTN_PULL}}
+            </button>
           </div>
         </section>
 
         <section class="panel" id="view-settings" data-view hidden>
           <header class="panel__head">
-            <h2 class="panel__title">{{SECTION_CONFIG}}</h2>
+            <h2 class="panel__title">
+              <span class="panel__title-icon">
+                <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+              </span>
+              {{SECTION_CONFIG}}
+            </h2>
             <div class="panel__meta">
               <span class="muted">{{UI_LABEL_CONFIG_PATH}}</span>
               <span class="mono" id="cfgPath">—</span>
@@ -185,7 +230,10 @@
           </div>
 
           <div class="panel__foot">
-            <button id="btnSave" class="btn" type="button">{{BTN_SAVE}}</button>
+            <button id="btnSave" class="btn btn--primary" type="button">
+              <span class="spinner"></span>
+              {{BTN_SAVE}}
+            </button>
           </div>
         </section>
 
@@ -194,11 +242,14 @@
 
       <aside class="output" aria-label="{{SECTION_OUTPUT}}">
         <header class="output__head">
-          <div class="output__title">{{SECTION_OUTPUT}}</div>
+          <div class="output__title">
+            <svg class="output__icon" viewBox="0 0 24 24" width="16" height="16"><path d="M20 19.59V8l-6-6H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c.45 0 .85-.15 1.19-.4l-4.43-4.43c-.8.52-1.74.83-2.76.83-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5c0 1.02-.31 1.96-.83 2.75L20 19.59zM9 13c0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3-3 1.34-3 3z"/></svg>
+            {{SECTION_OUTPUT}}
+          </div>
           <div class="output__actions">
-            <button id="btnWrap" class="btn btn--ghost" type="button" data-label-wrap="{{UI_BTN_WRAP}}" data-label-unwrap="{{UI_BTN_UNWRAP}}">{{UI_BTN_WRAP}}</button>
-            <button id="btnCopy" class="btn btn--ghost" type="button">{{UI_BTN_COPY}}</button>
-            <button id="btnClear" class="btn btn--ghost" type="button">{{UI_BTN_CLEAR}}</button>
+            <button id="btnWrap" class="btn btn--ghost btn--sm" type="button" data-label-wrap="{{UI_BTN_WRAP}}" data-label-unwrap="{{UI_BTN_UNWRAP}}">{{UI_BTN_WRAP}}</button>
+            <button id="btnCopy" class="btn btn--ghost btn--sm" type="button">{{UI_BTN_COPY}}</button>
+            <button id="btnClear" class="btn btn--ghost btn--sm" type="button">{{UI_BTN_CLEAR}}</button>
           </div>
         </header>
         <pre id="out" class="out" aria-live="polite">{{UI_OUTPUT_EMPTY}}</pre>

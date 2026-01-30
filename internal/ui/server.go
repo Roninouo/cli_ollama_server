@@ -16,6 +16,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 
 	"cli_ollama_server/internal/config"
 	"cli_ollama_server/internal/execollama"
@@ -28,6 +29,9 @@ import (
 //go:embed static/*
 var staticFS embed.FS
 
+// ShutdownTimeout is the maximum duration allowed for graceful server shutdown.
+const ShutdownTimeout = 5 * time.Second
+
 type Server struct {
 	Listener   net.Listener
 	Translator *i18n.Bundle
@@ -35,10 +39,11 @@ type Server struct {
 	ConfigPath string
 	BaseEnv    []string
 
-	srv   *http.Server
-	token string
-	once  sync.Once
-	wait  chan error
+	srv      *http.Server
+	token    string
+	once     sync.Once
+	wait     chan error
+	shutdown chan struct{}
 }
 
 func (s *Server) Start() (string, error) {
@@ -49,6 +54,7 @@ func (s *Server) Start() (string, error) {
 		s.Translator = i18n.New("en")
 	}
 	s.wait = make(chan error, 1)
+	s.shutdown = make(chan struct{})
 
 	tok, err := randomToken(16)
 	if err != nil {
@@ -69,7 +75,10 @@ func (s *Server) Start() (string, error) {
 	mux.HandleFunc("/api/config", s.auth(s.handleConfig))
 	mux.HandleFunc("/api/config/set", s.auth(s.handleConfigSet))
 
-	s.srv = &http.Server{Handler: mux}
+	s.srv = &http.Server{
+		Handler:           mux,
+		ReadHeaderTimeout: 10 * time.Second,
+	}
 
 	addr := s.Listener.Addr().String()
 	url := "http://" + addr + "/?t=" + s.token
@@ -80,6 +89,19 @@ func (s *Server) Start() (string, error) {
 
 	_ = openBrowser(url)
 	return url, nil
+}
+
+// Shutdown gracefully stops the server with a timeout.
+func (s *Server) Shutdown() error {
+	s.once.Do(func() {
+		close(s.shutdown)
+	})
+	if s.srv == nil {
+		return nil
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), ShutdownTimeout)
+	defer cancel()
+	return s.srv.Shutdown(ctx)
 }
 
 func (s *Server) Wait() int {

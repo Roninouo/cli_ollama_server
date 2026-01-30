@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -141,7 +142,7 @@ func Run(args []string) int {
 		return 2
 	}
 
-	code, runErr := ollamarunner.Run(nil, ollamarunner.Options{
+	code, runErr := ollamarunner.Run(context.Background(), ollamarunner.Options{
 		Mode:        eff.Mode,
 		Host:        eff.Host,
 		OllamaExe:   eff.OllamaExe,
